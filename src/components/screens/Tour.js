@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { consts, device, texts } from '../../config';
 import { matomoTrackingString } from '../../helpers';
 import { useMatomoTrackScreenView } from '../../hooks';
+import { DataProviderButton } from '../DataProviderButton';
 import { HtmlView } from '../HtmlView';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
@@ -59,6 +60,8 @@ export const Tour = ({ data, navigation }) => {
     ])
   );
 
+  const businessAccount = dataProvider?.dataType === 'business_account';
+
   return (
     <View>
       <ImageSection mediaContents={mediaContents} />
@@ -102,6 +105,10 @@ export const Tour = ({ data, navigation }) => {
         />
 
         <TMBNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
+
+        {!!businessAccount && (
+          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
+        )}
       </WrapperWithOrientation>
     </View>
   );

@@ -45,8 +45,21 @@ export const texts = {
     pointsOfInterest: 'Orte',
     tours: 'Touren'
   },
+  commercial: {
+    commercial: 'Angebot',
+    commercials: 'Angebote'
+  },
   constructionSites: {
     noInformationGiven: 'Derzeit sind zu keinen Baustellen Informationen vorhanden.'
+  },
+  dataProvider: {
+    more: 'Mehr von',
+    partner: 'Partner',
+    showAll: 'Alle anzeigen'
+  },
+  dateTimePicker: {
+    cancel: 'Abbrechen',
+    ok: 'Ok'
   },
   detailTitles: {
     eventRecord: 'Veranstaltung',
@@ -55,7 +68,8 @@ export const texts = {
     tour: 'Tour'
   },
   errors: {
-    noData: 'Bitte überprüfen Sie Ihre Internetverbindung.'
+    noData: 'Bitte überprüfen Sie Ihre Internetverbindung.',
+    unexpected: 'Es ist ein unerwarteter Fehler aufgetreten.'
   },
   eventRecord: {
     appointments: 'Termine',
@@ -79,9 +93,20 @@ export const texts = {
     categoryTitle: 'Nachrichten',
     categoryTitleDetail: 'Nachricht'
   },
+  locationOverview: {
+    noSelection: 'Bitte wählen Sie eine Markierung aus.'
+  },
+  job: {
+    employmentType: 'Art der Anstellung: ',
+    job: 'Stellenanzeige',
+    jobs: 'Stellenanzeigen'
+  },
   lunch: {
     noOffers: 'Für dieses Datum sind derzeit keine Gerichte verfügbar.',
     showAll: 'Alle Gastro-Angebote anzeigen'
+  },
+  map: {
+    noGeoLocations: 'Zu den angegebenen Orten gibt es leider keine Geodaten.'
   },
   navigationTitles: {
     home: 'Übersicht'
@@ -95,13 +120,16 @@ export const texts = {
     showLunches: 'Zum aktuellen Gastro-Angebot'
   },
   pushNotifications: {
+    abort: 'Abbrechen',
     approve: 'Jetzt einschalten',
     decline: 'Vielleicht später',
     greetingBody:
       'Damit Sie wichtige Mitteilungen aus Ihrer Kommune erreichen, würden wir Ihnen gerne Benachrichtigungen schicken. Sie können diese Einstellung jederzeit in Ihrem persönlichen Bereich ändern.',
     greetingTitle: 'Willkommen',
-    permissionMissingBody: 'Bitte überprüfe deine Benachrichtigungseinstellungen im System.',
-    permissionMissingTitle: 'Hinweis'
+    permissionMissingBody: 'Bitte überprüfen Sie Ihre Benachrichtigungseinstellungen im System.',
+    permissionMissingTitle: 'Hinweis',
+    permissionRequiredBody:
+      'Diese Funktion benötigt die Berechtigung Ihnen Benachrichtigungen zu schicken.'
   },
   screenTitles: {
     home: appJson.expo.name,
@@ -110,6 +138,7 @@ export const texts = {
     about: appJson.expo.name,
     constructionSite: 'Baustelle',
     settings: 'Einstellungen',
+    wasteCollection: 'Abfallkalender',
     weather: 'Wetter'
   },
   settingsContents: {
@@ -154,6 +183,22 @@ export const texts = {
     operatingCompany: 'Veranstalter',
     start: 'Tourbeginn',
     tour: 'Tourverlauf'
+  },
+  wasteCalendar: {
+    configureReminder: 'Erinnerungen einstellen',
+    errorOnUpdateBody: 'Beim Aktualisieren Ihrer Einstellungen ist ein Fehler aufgetreten.',
+    errorOnUpdateTitle: 'Fehler',
+    hint: 'Bitte geben Sie Ihre Straße an.',
+    onDayBeforeCollection: 'Am Vortag',
+    onDayOfCollection: 'Am Tag der Abholung',
+    reminder: 'Erinnerungen',
+    reminderTime: 'Zu welcher Uhrzeit möchten Sie benachrichtigt werden?',
+    unableToLoad:
+      'Beim Laden Ihrer Einstellungen ist ein Fehler aufgetreten. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    updateReminderSettings: 'Änderungen speichern',
+    updateSuccess: 'Die Einstellungen wurden erfolgreich gespeichert.',
+    whichDay: 'Möchten Sie am Vortag oder am Tag der Abholung benachrichtigt werden?',
+    whichType: 'Für welche Müllsorten möchten Sie Erinnerungen?'
   },
   weather: {
     alertsHeadline: 'Wetterwarnungen',

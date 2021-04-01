@@ -23,9 +23,9 @@ const { MATOMO_TRACKING } = consts;
 
 export const BookmarkCategoryScreen = ({ navigation }) => {
   const query = navigation.getParam('query');
-  const categoryId = navigation.getParam('categoryId');
+  const suffix = navigation.getParam('suffix');
   const categoryTitleDetail = navigation.getParam('categoryTitleDetail');
-  const bookmarks = useBookmarks(query, categoryId);
+  const bookmarks = useBookmarks(query, suffix);
 
   const variables = { ids: bookmarks };
 
@@ -79,7 +79,7 @@ export const BookmarkCategoryScreen = ({ navigation }) => {
 
   return (
     <SafeAreaViewFlex>
-      <ListComponent navigation={navigation} data={listItems} query={query} />
+      <ListComponent navigation={navigation} data={listItems} horizontal={false} query={query} />
     </SafeAreaViewFlex>
   );
 };

@@ -19,6 +19,7 @@ import { TMBNotice } from '../TMB/Notice';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
 import { OperatingCompany } from './OperatingCompany';
+import { DataProviderButton } from '../DataProviderButton';
 
 // necessary hacky way of implementing iframe in webview with correct zoom level
 // thx to: https://stackoverflow.com/a/55780430
@@ -104,6 +105,8 @@ export const EventRecord = ({ data, navigation }) => {
         );
     });
 
+  const businessAccount = dataProvider?.dataType === 'business_account';
+
   return (
     <View>
       <ImageSection mediaContents={mediaContents} />
@@ -183,6 +186,10 @@ export const EventRecord = ({ data, navigation }) => {
         />
 
         <TMBNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
+
+        {!!businessAccount && (
+          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
+        )}
       </WrapperWithOrientation>
     </View>
   );

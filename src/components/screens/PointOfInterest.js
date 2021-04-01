@@ -8,16 +8,17 @@ import { useMatomoTrackScreenView } from '../../hooks';
 import { location, locationIconAnchor } from '../../icons';
 import { NetworkContext } from '../../NetworkProvider';
 import { Button } from '../Button';
+import { DataProviderButton } from '../DataProviderButton';
 import { HtmlView } from '../HtmlView';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
 import { Logo } from '../Logo';
 import { WebViewMap } from '../map/WebViewMap';
-import { OperatingCompany } from './OperatingCompany';
 import { Title, TitleContainer, TitleShadow } from '../Title';
 import { TMBNotice } from '../TMB/Notice';
 import { Wrapper, WrapperWithOrientation } from '../Wrapper';
 import { OpeningTimesCard } from './OpeningTimesCard';
+import { OperatingCompany } from './OperatingCompany';
 import { PriceCard } from './PriceCard';
 
 const { MATOMO_TRACKING } = consts;
@@ -70,6 +71,8 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
       title
     ])
   );
+
+  const businessAccount = dataProvider?.dataType === 'business_account';
 
   return (
     <View>
@@ -164,6 +167,7 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
                   position: { lat: latitude, lng: longitude }
                 }
               ]}
+              zoom={14}
             />
             {device.platform === 'ios' && <TitleShadow />}
           </View>
@@ -176,6 +180,10 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
         />
 
         <TMBNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
+
+        {!!businessAccount && (
+          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
+        )}
       </WrapperWithOrientation>
     </View>
   );
@@ -185,5 +193,6 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
 PointOfInterest.propTypes = {
   data: PropTypes.object.isRequired,
   hideMap: PropTypes.bool,
-  navigation: PropTypes.object
+  navigation: PropTypes.object,
+  fetchPolicy: PropTypes.string
 };

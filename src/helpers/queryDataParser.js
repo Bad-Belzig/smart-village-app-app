@@ -3,7 +3,9 @@ import _shuffle from 'lodash/shuffle';
 
 import { consts, texts } from '../config';
 import { QUERY_TYPES } from '../queries';
-import { eventDate } from './dateTimeHelper';
+import { GenericType } from '../types';
+import { eventDate, isBeforeEndOfToday, isTodayOrLater } from './dateTimeHelper';
+import { getGenericItemDetailTitle, getGenericItemRootRouteName } from './genericTypeHelper';
 import { mainImageOfMediaContents } from './imageHelper';
 import { momentFormat } from './momentHelper';
 import { shareMessage } from './shareHelper';
@@ -11,7 +13,20 @@ import { subtitle } from './textHelper';
 
 const { ROOT_ROUTE_NAMES } = consts;
 
-export const parseEventRecords = (data, skipLastDivider) => {
+const filterGenericItems = (item) => {
+  if (item?.genericType === GenericType.Job) {
+    const dateEnd = item?.dates?.[0]?.dateEnd;
+    const hasNotEnded = dateEnd ? isTodayOrLater(dateEnd) : true;
+
+    const publicationDate = item?.publicationDate;
+    const isPublished = publicationDate ? isBeforeEndOfToday(publicationDate) : true;
+
+    return hasNotEnded && isPublished;
+  }
+  return true;
+};
+
+const parseEventRecords = (data, skipLastDivider) => {
   return data?.map((eventRecord, index) => ({
     id: eventRecord.id,
     subtitle: subtitle(
@@ -37,7 +52,43 @@ export const parseEventRecords = (data, skipLastDivider) => {
   }));
 };
 
-export const parseNewsItems = (data, skipLastDivider, titleDetail) => {
+const parseGenericItems = (data, skipLastDivider) => {
+  // this likely needs a rework in the future, but for now this is the place to filter items.
+  const filteredData = data?.filter(filterGenericItems);
+
+  return filteredData?.map((genericItem, index) => ({
+    id: genericItem.id,
+    subtitle: subtitle(
+      momentFormat(genericItem.publicationDate ?? genericItem.createdAt),
+      genericItem.dataProvider?.name
+    ),
+    title: genericItem.title,
+    picture: {
+      url:
+        genericItem.contentBlocks?.[0]?.mediaContents?.length &&
+        _filter(
+          genericItem.contentBlocks[0].mediaContents,
+          (mediaContent) =>
+            mediaContent.contentType === 'image' || mediaContent.contentType === 'thumbnail'
+        )[0]?.sourceUrl?.url
+    },
+    routeName: 'Detail',
+    params: {
+      title: getGenericItemDetailTitle(genericItem.genericType),
+      suffix: genericItem.genericType,
+      query: QUERY_TYPES.GENERIC_ITEM,
+      queryVariables: { id: `${genericItem.id}` },
+      rootRouteName: getGenericItemRootRouteName(genericItem.genericType),
+      shareContent: {
+        message: shareMessage(genericItem, QUERY_TYPES.GENERIC_ITEM)
+      },
+      details: genericItem
+    },
+    bottomDivider: !skipLastDivider || index !== filteredData.length - 1
+  }));
+};
+
+const parseNewsItems = (data, skipLastDivider, titleDetail) => {
   return data?.map((newsItem, index) => ({
     id: newsItem.id,
     subtitle: subtitle(momentFormat(newsItem.publishedAt), newsItem.dataProvider?.name),
@@ -54,7 +105,7 @@ export const parseNewsItems = (data, skipLastDivider, titleDetail) => {
     routeName: 'Detail',
     params: {
       title: titleDetail,
-      categoryId: newsItem.categories?.[0]?.id,
+      suffix: newsItem.categories?.[0]?.id,
       query: QUERY_TYPES.NEWS_ITEM,
       queryVariables: { id: `${newsItem.id}` },
       rootRouteName: ROOT_ROUTE_NAMES.NEWS_ITEMS,
@@ -67,7 +118,7 @@ export const parseNewsItems = (data, skipLastDivider, titleDetail) => {
   }));
 };
 
-export const parsePointOfInterest = (data, skipLastDivider) => {
+const parsePointOfInterest = (data, skipLastDivider) => {
   return data?.map((pointOfInterest, index) => ({
     id: pointOfInterest.id,
     title: pointOfInterest.name,
@@ -93,7 +144,7 @@ export const parsePointOfInterest = (data, skipLastDivider) => {
   }));
 };
 
-export const parseTours = (data, skipLastDivider) => {
+const parseTours = (data, skipLastDivider) => {
   return data?.map((tour, index) => ({
     id: tour.id,
     title: tour.name,
@@ -137,12 +188,21 @@ const parseCategories = (data, skipLastDivider) => {
   }));
 };
 
+const parsePointsOfInterestAndTours = (data) => {
+  const pointsOfInterest = parsePointOfInterest(data?.[QUERY_TYPES.POINTS_OF_INTEREST]);
+  const tours = parseTours(data?.[QUERY_TYPES.TOURS]);
+
+  return _shuffle([...(pointsOfInterest || []), ...(tours || [])]);
+};
+
 export const parseListItemsFromQuery = (query, data, skipLastDivider, titleDetail) => {
-  if (!(data && data[query])) return;
+  if (!data) return;
 
   switch (query) {
     case QUERY_TYPES.EVENT_RECORDS:
       return parseEventRecords(data[query], skipLastDivider);
+    case QUERY_TYPES.GENERIC_ITEMS:
+      return parseGenericItems(data[query], skipLastDivider);
     case QUERY_TYPES.NEWS_ITEMS:
       return parseNewsItems(data[query], skipLastDivider, titleDetail);
     case QUERY_TYPES.POINTS_OF_INTEREST:
@@ -151,13 +211,7 @@ export const parseListItemsFromQuery = (query, data, skipLastDivider, titleDetai
       return parseTours(data[query], skipLastDivider);
     case QUERY_TYPES.CATEGORIES:
       return parseCategories(data[query], skipLastDivider);
+    case QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS:
+      return parsePointsOfInterestAndTours(data);
   }
-};
-
-export const parsePointsOfInterestAndTours = (data) => {
-  const pointsOfInterest = parsePointOfInterest(data?.[QUERY_TYPES.POINTS_OF_INTEREST]);
-
-  const tours = parseTours(data?.[QUERY_TYPES.TOURS]);
-
-  return _shuffle([...(pointsOfInterest || []), ...(tours || [])]);
 };

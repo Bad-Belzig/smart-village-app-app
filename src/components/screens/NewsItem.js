@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { consts, device } from '../../config';
 import { matomoTrackingString, momentFormat, trimNewLines } from '../../helpers';
 import { useMatomoTrackScreenView } from '../../hooks';
+import { DataProviderButton } from '../DataProviderButton';
 import { ImageSection } from '../ImageSection';
 import { Logo } from '../Logo';
 import { StorySection } from '../StorySection';
@@ -57,6 +58,8 @@ export const NewsItem = ({ data, navigation }) => {
     ])
   );
 
+  const businessAccount = dataProvider?.dataType === 'business_account';
+
   return (
     <View>
       {/* the images from the first content block will be present in the main image carousel */}
@@ -96,6 +99,10 @@ export const NewsItem = ({ data, navigation }) => {
               settings={settings}
             />
           ))}
+
+        {!!businessAccount && (
+          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
+        )}
       </WrapperWithOrientation>
     </View>
   );

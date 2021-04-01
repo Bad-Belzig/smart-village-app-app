@@ -5,6 +5,7 @@ import {
   BookmarkScreen,
   ConstructionSiteDetailScreen,
   ConstructionSiteOverviewScreen,
+  DataProviderScreen,
   DetailScreen,
   FormScreen,
   HomeScreen,
@@ -12,8 +13,10 @@ import {
   IndexScreen,
   LunchScreen,
   SettingsScreen,
+  WasteCollectionScreen,
   WeatherScreen,
-  WebScreen
+  WebScreen,
+  WasteReminderScreen
 } from '../screens';
 import {
   DetailScreen as BBBUSDetailScreen,
@@ -63,6 +66,12 @@ const AppStackNavigator = (headerRight = true) =>
           title: props.navigation.getParam('title', texts.widgets.constructionSites)
         })
       },
+      DataProvider: {
+        screen: DataProviderScreen,
+        navigationOptions: (props) => ({
+          title: props.navigation.getParam('title', texts.dataProvider.partner)
+        })
+      },
       Detail: {
         screen: DetailScreen,
         navigationOptions: (props) => ({
@@ -103,6 +112,18 @@ const AppStackNavigator = (headerRight = true) =>
         screen: SettingsScreen,
         navigationOptions: (props) => ({
           title: props.navigation.getParam('title', texts.screenTitles.settings)
+        })
+      },
+      WasteCollection: {
+        screen: WasteCollectionScreen,
+        navigationOptions: (props) => ({
+          title: props.navigation.getParam('title', texts.screenTitles.wasteCollection)
+        })
+      },
+      WasteReminder: {
+        screen: WasteReminderScreen,
+        navigationOptions: (props) => ({
+          title: props.navigation.getParam('title', texts.screenTitles.wasteCollection)
         })
       },
       Weather: {

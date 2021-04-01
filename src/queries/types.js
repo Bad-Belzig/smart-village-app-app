@@ -5,6 +5,8 @@ export const QUERY_TYPES = {
   CATEGORIES: 'categories',
   EVENT_RECORD: 'eventRecord',
   EVENT_RECORDS: 'eventRecords',
+  GENERIC_ITEM: 'genericItem',
+  GENERIC_ITEMS: 'genericItems',
   LUNCHES: 'lunches',
   NEWS_ITEM: 'newsItem',
   NEWS_ITEMS: 'newsItems',
@@ -15,6 +17,8 @@ export const QUERY_TYPES = {
   PUBLIC_JSON_FILE: 'publicJsonFile',
   TOUR: 'tour',
   TOURS: 'tours',
+  WASTE_ADDRESSES: 'wasteAddresses',
+  WASTE_STREET: 'wasteStreet',
   WEATHER_MAP: 'weatherMap',
   WEATHER_MAP_CURRENT: 'weatherMapCurrent'
 };

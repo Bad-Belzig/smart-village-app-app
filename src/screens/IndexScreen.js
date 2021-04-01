@@ -35,6 +35,12 @@ export const IndexScreen = ({ navigation }) => {
   const query = navigation.getParam('query', '');
   const title = navigation.getParam('title', '');
   const titleDetail = navigation.getParam('titleDetail', '');
+  const showFilter =
+    navigation.getParam('showFilter', true) &&
+    {
+      [QUERY_TYPES.EVENT_RECORDS]: showEventsFilter,
+      [QUERY_TYPES.NEWS_ITEMS]: showNewsFilter
+    }[query];
 
   const refresh = useCallback(
     async (refetch) => {
@@ -83,6 +89,7 @@ export const IndexScreen = ({ navigation }) => {
     if (query) {
       const MATOMO_TRACKING_SCREEN = {
         [QUERY_TYPES.EVENT_RECORDS]: MATOMO_TRACKING.SCREEN_VIEW.EVENT_RECORDS,
+        [QUERY_TYPES.GENERIC_ITEMS]: MATOMO_TRACKING.SCREEN_VIEW.GENERIC_ITEMS,
         [QUERY_TYPES.NEWS_ITEMS]: MATOMO_TRACKING.SCREEN_VIEW.NEWS_ITEMS,
         [QUERY_TYPES.POINTS_OF_INTEREST]: MATOMO_TRACKING.SCREEN_VIEW.POINTS_OF_INTEREST,
         [QUERY_TYPES.TOURS]: MATOMO_TRACKING.SCREEN_VIEW.TOURS,
@@ -92,6 +99,7 @@ export const IndexScreen = ({ navigation }) => {
       // in some cases we want to apply more information to the tracking string
       const MATOMO_TRACKING_CATEGORY = {
         [QUERY_TYPES.EVENT_RECORDS]: null,
+        [QUERY_TYPES.GENERIC_ITEMS]: title, // the title should be the type of the generic items
         [QUERY_TYPES.NEWS_ITEMS]: title, // the title should be the category of news
         [QUERY_TYPES.POINTS_OF_INTEREST]: null,
         [QUERY_TYPES.TOURS]: null,
@@ -103,14 +111,10 @@ export const IndexScreen = ({ navigation }) => {
       isConnected &&
         trackScreenView(matomoTrackingString([MATOMO_TRACKING_SCREEN, MATOMO_TRACKING_CATEGORY]));
     }
-  }, [query]);
+  }, [isConnected, navigation, query, setQueryVariables]);
 
   if (!query) return null;
 
-  const showFilter = {
-    [QUERY_TYPES.EVENT_RECORDS]: showEventsFilter,
-    [QUERY_TYPES.NEWS_ITEMS]: showNewsFilter
-  }[query];
   const queryVariableForQuery = {
     [QUERY_TYPES.EVENT_RECORDS]: 'categoryId',
     [QUERY_TYPES.NEWS_ITEMS]: 'dataProvider'
@@ -124,7 +128,11 @@ export const IndexScreen = ({ navigation }) => {
         <MapSwitchHeader setShowMap={setShowMap} showMap={showMap} />
       ) : null}
       {query === QUERY_TYPES.POINTS_OF_INTEREST && showMap ? (
-        <LocationOverview navigation={navigation} category={queryVariables.category} />
+        <LocationOverview
+          navigation={navigation}
+          category={queryVariables.category}
+          dataProviderName={queryVariables.dataProvider}
+        />
       ) : (
         <Query
           query={getQuery(query, { showNewsFilter, showEventsFilter })}
@@ -149,7 +157,7 @@ export const IndexScreen = ({ navigation }) => {
                 query: getFetchMoreQuery(query),
                 variables: {
                   ...queryVariables,
-                  offset: listItems.length
+                  offset: data?.[query]?.length
                 },
                 updateQuery: (prevResult, { fetchMoreResult }) => {
                   if (!fetchMoreResult || !fetchMoreResult[query].length) return prevResult;
@@ -170,6 +178,7 @@ export const IndexScreen = ({ navigation }) => {
                 }
                 navigation={navigation}
                 data={listItems}
+                horizontal={false}
                 query={query}
                 fetchMoreData={isConnected ? fetchMoreData : null}
                 refreshControl={

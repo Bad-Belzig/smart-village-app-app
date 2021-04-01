@@ -5,6 +5,7 @@ import { Subscription } from '@unimodules/react-native-adapter';
 
 import { readFromStore } from '../helpers';
 import {
+  getPushTokenFromStorage,
   initializePushPermissions,
   PushNotificationStorageKeys,
   updatePushToken
@@ -16,8 +17,15 @@ type ResponseHandler = (arg: Notifications.NotificationResponse) => void;
 export const usePushNotifications = (
   notificationHandler?: NotificationHandler,
   interactionHandler?: ResponseHandler,
-  behavior?: Notifications.NotificationBehavior
+  behavior?: Notifications.NotificationBehavior,
+  active?: boolean
 ): void => {
+  // this causes the active state to never change between rerenders.
+  // like this enabling or disabling the pushNotifications requires an app restart.
+  const [isActive] = useState(active);
+
+  if (isActive === false) return;
+
   const notificationListener = useRef<Subscription>();
   const responseListener = useRef<Subscription>();
 
@@ -31,9 +39,10 @@ export const usePushNotifications = (
       // no timeout causes the onGetActive to fire an additional request to our server
       setTimeout(async () => {
         const inAppPermission = await readFromStore(PushNotificationStorageKeys.IN_APP_PERMISSION);
+        const token = await getPushTokenFromStorage();
 
         if (nextState === 'active') {
-          inAppPermission && updatePushToken();
+          inAppPermission && !token && updatePushToken();
         }
       }, 3000);
     }
