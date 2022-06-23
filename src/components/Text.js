@@ -16,19 +16,39 @@ function parseNumericCharacterReferences(text) {
   );
 }
 
+function insertWhiteSpaceAfterDashes(text) {
+  if (!text) return;
+
+  return text.replace('-', '-' + String.fromCharCode(8203));
+}
+
+function parseText(text) {
+  if (!text) return;
+
+  let result = parseNumericCharacterReferences(text);
+
+  result = insertWhiteSpaceAfterDashes(result);
+
+  return result;
+}
+
 export const Text = ({ children, ...props }) => {
   return (
-    <RNText {...props}>
-      {typeof children === 'string' ? parseNumericCharacterReferences(children) : children}
-    </RNText>
+    <RNText {...props}>{typeof children === 'string' ? parseText(children) : children}</RNText>
   );
 };
 
 export const RegularText = styled(Text)`
   color: ${colors.darkText};
-  font-family: titillium-web-regular;
+  font-family: regular;
   font-size: ${normalize(16)};
   line-height: ${normalize(22)};
+
+  ${(props) =>
+    props.italic &&
+    css`
+      font-family: italic;
+    `};
 
   ${(props) =>
     props.small &&
@@ -51,33 +71,57 @@ export const RegularText = styled(Text)`
     `};
 
   ${(props) =>
+    props.lineThrough &&
+    css`
+      text-decoration: line-through;
+    `};
+
+  ${(props) =>
+    props.underline &&
+    css`
+      text-decoration: underline;
+    `};
+
+  ${(props) =>
     props.primary &&
     css`
       color: ${colors.primary};
+      text-decoration-color: ${colors.primary};
     `};
 
   ${(props) =>
     props.lighter &&
     css`
       color: ${colors.lighterText};
+      text-decoration-color: ${colors.lighterText};
     `};
 
   ${(props) =>
     props.lightest &&
     css`
       color: ${colors.lightestText};
+      text-decoration-color: ${colors.lightestText};
     `};
 
   ${(props) =>
     props.placeholder &&
     css`
       color: ${colors.placeholder};
+      text-decoration-color: ${colors.placeholder};
     `};
 
   ${(props) =>
     props.darker &&
     css`
       color: ${colors.darkerPrimary};
+      text-decoration-color: ${colors.darkerPrimary};
+    `};
+
+  ${(props) =>
+    props.error &&
+    css`
+      color: ${colors.error};
+      text-decoration-color: ${colors.error};
     `};
 
   ${(props) =>
@@ -85,10 +129,22 @@ export const RegularText = styled(Text)`
     css`
       text-align: center;
     `};
+
+  ${(props) =>
+    props.right &&
+    css`
+      text-align: right;
+    `};
 `;
 
 export const BoldText = styled(RegularText)`
-  font-family: titillium-web-bold;
+  font-family: bold;
+
+  ${(props) =>
+    props.italic &&
+    css`
+      font-family: bold-italic;
+    `};
 `;
 
 Text.propTypes = {

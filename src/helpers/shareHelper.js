@@ -2,9 +2,13 @@ import { Share } from 'react-native';
 
 import appJson from '../../app.json';
 import { QUERY_TYPES } from '../queries';
+
 import { momentFormat } from './momentHelper';
 
 // https://facebook.github.io/react-native/docs/share
+/**
+ * @param {{ title?: string; message: string; } | { title?: string; url: string; }} shareContent
+ */
 export const openShare = async ({ message, title, url }) => {
   try {
     const result = await Share.share(
@@ -48,6 +52,12 @@ export const shareMessage = (data, query) => {
         return `${data.category?.name}: ${data.name}`;
       case QUERY_TYPES.TOUR:
         return `${data.category?.name}: ${data.name}`;
+      case QUERY_TYPES.VOLUNTEER.CALENDAR:
+      case QUERY_TYPES.VOLUNTEER.GROUP:
+      case QUERY_TYPES.VOLUNTEER.ADDITIONAL:
+        return data.subtitle ? `${data.subtitle}: ${data.title}` : data.title;
+      default:
+        return data.title;
     }
   };
 

@@ -1,10 +1,38 @@
-import { useContext, useEffect } from 'react';
-import { Alert } from 'react-native';
+import Constants from 'expo-constants';
+import * as Localization from 'expo-localization';
 import { useMatomo } from 'matomo-tracker-react-native';
+import { useCallback, useContext, useEffect } from 'react';
 
-import { texts } from '../config';
-import { SettingsContext } from '../SettingsProvider';
-import { createMatomoUserId, setMatomoHandledOnStartup, storageHelper } from '../helpers';
+import appJson from '../../app.json';
+import { device } from '../config';
+import { NetworkContext } from '../NetworkProvider';
+
+export const useUserInfoAsync = () =>
+  useCallback(async () => {
+    const ua = await Constants.getWebViewUserAgentAsync();
+    const userInfo = {
+      _cvar: JSON.stringify({ 1: ['App-Version', appJson.expo.version] }),
+      lang: Localization.locale,
+      res: `${device.width}x${device.height}`,
+      ua
+    };
+
+    return userInfo;
+  }, []);
+
+export const useTrackScreenViewAsync = () => {
+  const { trackScreenView } = useMatomo();
+  const userInfoAsync = useUserInfoAsync();
+
+  return useCallback(
+    async (name) => {
+      const userInfo = await userInfoAsync();
+
+      trackScreenView({ name, userInfo });
+    },
+    [userInfoAsync]
+  );
+};
 
 /**
  * Tracks screen view as action with prefixed 'Screen' category on mounting the component, which
@@ -15,42 +43,10 @@ import { createMatomoUserId, setMatomoHandledOnStartup, storageHelper } from '..
  *                        Feedback will create the Action Feedback in the category Help.
  */
 export const useMatomoTrackScreenView = (name) => {
-  const { isConnected } = useContext(SettingsContext);
-  const { trackScreenView } = useMatomo();
+  const { isConnected } = useContext(NetworkContext);
+  const trackScreenViewAsync = useTrackScreenViewAsync();
 
   useEffect(() => {
-    isConnected && trackScreenView(name);
-  }, []);
-};
-
-export const useMatomoAlertOnStartUp = () => {
-  const { globalSettings } = useContext(SettingsContext);
-
-  useEffect(() => {
-    const showMatomoAlert = async () => {
-      const settings = await storageHelper.matomoSettings();
-
-      if (!settings?.matomoHandledOnStartup) {
-        Alert.alert(
-          texts.settingsTitles.analytics,
-          texts.settingsContents.analytics.onActivate,
-          [
-            {
-              text: texts.settingsContents.analytics.no,
-              style: 'cancel'
-            },
-            {
-              text: texts.settingsContents.analytics.yes,
-              onPress: createMatomoUserId
-            }
-          ],
-          { cancelable: false }
-        );
-
-        setMatomoHandledOnStartup();
-      }
-    };
-
-    !!globalSettings?.settings?.matomo && showMatomoAlert();
+    isConnected && trackScreenViewAsync(name);
   }, []);
 };

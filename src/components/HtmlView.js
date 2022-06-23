@@ -2,24 +2,24 @@ import PropTypes from 'prop-types';
 import React, { memo } from 'react';
 import HTML from 'react-native-render-html';
 import {
-  IGNORED_TAGS,
   alterNode,
-  makeTableRenderer,
+  cssRulesFromSpecs,
   defaultTableStylesSpecs,
-  cssRulesFromSpecs
-} from 'react-native-render-html-table-bridge';
+  IGNORED_TAGS,
+  makeTableRenderer
+} from '@native-html/table-plugin';
 import { WebView } from 'react-native-webview';
 
 import { colors, consts, normalize, styles } from '../config';
 import { imageWidth, openLink } from '../helpers';
 
-const tableCssRules =
+const cssRules =
   cssRulesFromSpecs({
     ...defaultTableStylesSpecs,
     linkColor: colors.primary,
-    // TODO: font family was not working at the moment with following implementation
-    //       https://github.com/jsamr/react-native-render-html-table-bridge/blob/master/readme.md#how-to-load-custom-fonts
-    // fontFamily: 'titillium-web-regular',
+    // TODO: font family documentation
+    //      https://github.com/native-html/plugins/tree/rnrh/4.x#how-to-load-custom-fonts
+    // fontFamily: 'regular',
     thColor: colors.lightestText,
     trOddBackground: colors.lightestText,
     trOddColor: colors.darkText,
@@ -31,20 +31,28 @@ const tableCssRules =
   font-size: ${normalize(13)}px;
 }
 th {
+  border-bottom: 0.25px solid ${'#3f5c7a'};
   border-left: 0.25px solid ${'#3f5c7a'};
   border-top: 0.25px solid ${'#3f5c7a'};
 }
+th:last-child {
+  border-right: 0.25px solid ${'#3f5c7a'};
+}
 td {
+  border-bottom: 0.25px solid ${'#b5b5b5'};
   border-left: 0.25px solid ${'#b5b5b5'};
-  border-top: 0.25px solid ${'#b5b5b5'};
+  border-top: 0;
+}
+td:last-child {
+  border-right: 0.25px solid ${'#b5b5b5'};
+}
+table {
+  border-bottom: 0.25px solid ${'#b5b5b5'};
 }
 `;
 
 const renderers = {
-  table: makeTableRenderer({
-    WebViewComponent: WebView,
-    cssRules: tableCssRules
-  })
+  table: makeTableRenderer({ WebView, cssRules })
 };
 
 const htmlConfig = {
@@ -53,15 +61,15 @@ const htmlConfig = {
   ignoredTags: IGNORED_TAGS
 };
 
-export const HtmlView = memo(({ html, tagsStyles, openWebScreen }) => {
-  let width = imageWidth();
+export const HtmlView = memo(({ html, tagsStyles, openWebScreen, width }) => {
+  let calculatedWidth = width !== undefined ? Math.min(imageWidth(), width) : imageWidth();
 
-  if (width > consts.DIMENSIONS.FULL_SCREEN_MAX_WIDTH) {
+  if (calculatedWidth > consts.DIMENSIONS.FULL_SCREEN_MAX_WIDTH) {
     // image width should be only 70% on wider screens, as there are 15% padding on each side
-    width = width * 0.7;
+    calculatedWidth = calculatedWidth * 0.7;
   }
 
-  const maxWidth = width - 2 * normalize(14); // width of an image minus paddings
+  const maxWidth = calculatedWidth - 2 * normalize(14); // width of an image minus paddings
 
   return (
     <HTML
@@ -91,7 +99,8 @@ HtmlView.displayName = 'HtmlView';
 HtmlView.propTypes = {
   html: PropTypes.string,
   tagsStyles: PropTypes.object,
-  openWebScreen: PropTypes.func
+  openWebScreen: PropTypes.func,
+  width: PropTypes.number
 };
 
 HtmlView.defaultProps = {

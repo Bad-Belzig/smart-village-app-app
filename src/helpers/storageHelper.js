@@ -1,4 +1,4 @@
-import { AsyncStorage } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // thx to: https://stackoverflow.com/a/35629507/9956365
 export const addToStore = async (key, value) =>
@@ -9,6 +9,8 @@ export const resetStore = async () => await AsyncStorage.clear();
 export const storageHelper = {
   globalSettings: () => readFromStore('globalSettings'),
   setGlobalSettings: (globalSettings) => addToStore('globalSettings', globalSettings),
+  locationSettings: () => readFromStore('locationSettings'),
+  setLocationSettings: (settings) => addToStore('locationSettings', settings),
   matomoSettings: () => readFromStore('matomoSettings'),
   setMatomoSettings: (matomoSettings) => addToStore('matomoSettings', matomoSettings),
   listTypesSettings: () => readFromStore('listTypesSettings'),
@@ -27,6 +29,8 @@ export const logCurrentStorage = (withoutApollo = false) => {
         }
       }
 
+      // this is intended to be logged if the method is called
+      // eslint-disable-next-line no-console
       console.log('CURRENT STORAGE: ', myStorage);
     });
   });

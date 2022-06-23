@@ -7,6 +7,12 @@ import { OrientationContext } from '../OrientationProvider';
 
 export const Wrapper = styled.View`
   padding: ${normalize(14)}px;
+
+  ${(props) =>
+    props.shrink &&
+    css`
+      flex-shrink: 1;
+    `};
 `;
 
 export const WrapperHorizontal = styled.View`
@@ -44,6 +50,12 @@ export const WrapperRow = styled.View`
     props.center &&
     css`
       justify-content: center;
+    `};
+
+  ${(props) =>
+    props.shrink &&
+    css`
+      flex-shrink: 1;
     `};
 
   ${(props) =>
@@ -85,7 +97,7 @@ WrapperWithOrientation.displayName = 'WrapperWithOrientation';
 
 WrapperWithOrientation.propTypes = {
   noFlex: PropTypes.bool,
-  children: PropTypes.oneOfType([PropTypes.array, PropTypes.object]).isRequired
+  children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired
 };
 
 WrapperWithOrientation.defaultProps = {

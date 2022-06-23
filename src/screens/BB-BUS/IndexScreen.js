@@ -1,32 +1,29 @@
-import deepRenameKeys from 'deep-rename-keys';
 import _filter from 'lodash/filter';
 import _memoize from 'lodash/memoize';
 import _sortBy from 'lodash/sortBy';
 import PropTypes from 'prop-types';
 import React, { useContext, useEffect, useState } from 'react';
 import { Query } from 'react-apollo';
-import { ActivityIndicator, KeyboardAvoidingView, RefreshControl, StyleSheet } from 'react-native';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 
-import { HeaderLeft, LoadingContainer, SafeAreaViewFlex } from '../../components';
-import { IndexFilterWrapperAndList } from '../../components/BB-BUS/IndexFilterWrapperAndList';
+import {
+  DefaultKeyboardAvoidingView,
+  IndexFilterWrapperAndList,
+  LoadingContainer,
+  SafeAreaViewFlex
+} from '../../components';
+import { BBBusClient } from '../../BBBusClient';
 import { ServiceList } from '../../components/BB-BUS/ServiceList';
-import { colors, consts, device, namespace, secrets, texts } from '../../config';
+import { colors, consts, namespace, secrets, texts } from '../../config';
 import { graphqlFetchPolicy, refreshTimeFor } from '../../helpers';
 import { shareMessage } from '../../helpers/BB-BUS/shareHelper';
 import { useMatomoTrackScreenView } from '../../hooks';
-import { getHeaderHeight, statusBarHeight } from '../../navigation/CustomDrawerContentComponent';
 import { NetworkContext } from '../../NetworkProvider';
-import { OrientationContext } from '../../OrientationProvider';
-import {
-  GET_COMMUNITIES_AND_TOP_10,
-  GET_DIRECTUS,
-  GET_SERVICES,
-  GET_TOP_10_IDS
-} from '../../queries/BB-BUS/directus';
+import { GET_AREAS_AND_TOP_10, GET_SERVICES, GET_TOP_10_IDS } from '../../queries/BB-BUS';
 
 const { MATOMO_TRACKING } = consts;
 
-const initialFilter = [
+const INITIAL_FILTER = [
   { id: 1, title: texts.bbBus.initialFilter.top10, selected: true },
   // TODO: commented out 'Lebenslagen' as the main server does not have data for that section yet
   // { id: 2, title: 'Lebenslagen', selected: false },
@@ -37,10 +34,8 @@ const initialFilter = [
 export const IndexScreen = ({ navigation }) => {
   const [refreshTime, setRefreshTime] = useState();
   const { isConnected, isMainserverUp } = useContext(NetworkContext);
-  const { orientation } = useContext(OrientationContext);
-  const [areaId, setAreaId] = useState(secrets[namespace]?.busBb?.areaId);
-  const queryVariables = { areaId };
-  const [filter, setFilter] = useState(initialFilter);
+  const [areaId, setAreaId] = useState(secrets[namespace]?.busBb?.v2?.areaId?.toString());
+  const [filter, setFilter] = useState(INITIAL_FILTER);
   const [refreshing, setRefreshing] = useState(false);
 
   useMatomoTrackScreenView(MATOMO_TRACKING.SCREEN_VIEW.BB_BUS);
@@ -88,6 +83,7 @@ export const IndexScreen = ({ navigation }) => {
         title: bbBusService.name,
         routeName: 'BBBUSDetail',
         params: {
+          areaId,
           title: bbBusService.name,
           query: '',
           queryVariables: {},
@@ -101,35 +97,21 @@ export const IndexScreen = ({ navigation }) => {
     (data, areaId) => [(data[0].object || data[0]).id, data.length, areaId].join('-')
   );
 
-  const getCommunities = (data) => {
-    const snake_caseData = data?.directus?.community?.data;
+  const getAreas = (data) => {
+    const areas = data?.area;
 
-    if (!snake_caseData) return [];
+    if (!areas?.length) return [];
 
-    // workaround for having camelCase keys in `communities`
-    // GraphQL is returning snake_case, see: https://github.com/d12/graphql-remote_loader/issues/36
-    // transforming method thanks to: https://coderwall.com/p/iprsng/convert-snake-case-to-camelcase
-    const communities = deepRenameKeys(snake_caseData, (key) =>
-      key.replace(/_\w/g, (m) => m[1].toUpperCase())
-    );
-
-    return _sortBy(communities, (item) => item.value.toUpperCase()).map((item) => ({
+    return _sortBy(areas, (item) => item.value.toUpperCase()).map((item) => ({
       ...item,
       selected: item.areaId == areaId // preselect the community with given area id
     }));
   };
 
   const getTop10 = (data, top10Ids) => {
-    const snake_caseData = data?.directus?.service?.data;
+    const top10 = data?.publicServiceTypes;
 
-    if (!snake_caseData) return [];
-
-    // workaround for having camelCase keys in `communities`
-    // GraphQL is returning snake_case, see: https://github.com/d12/graphql-remote_loader/issues/36
-    // transforming method thanks to: https://coderwall.com/p/iprsng/convert-snake-case-to-camelcase
-    const top10 = deepRenameKeys(snake_caseData, (key) =>
-      key.replace(/_\w/g, (m) => m[1].toUpperCase())
-    );
+    if (!top10?.length) return [];
 
     return _sortBy(top10, (item) => top10Ids.indexOf(item.id)).map((bbBusService) => ({
       title: bbBusService.name,
@@ -149,14 +131,7 @@ export const IndexScreen = ({ navigation }) => {
 
   return (
     <SafeAreaViewFlex>
-      <KeyboardAvoidingView
-        enabled={device.platform === 'ios'}
-        behavior={device.platform === 'ios' && 'padding'}
-        keyboardVerticalOffset={
-          device.platform === 'ios' && getHeaderHeight(orientation) + statusBarHeight(orientation)
-        }
-        style={styles.flex}
-      >
+      <DefaultKeyboardAvoidingView>
         <Query query={GET_TOP_10_IDS} fetchPolicy={fetchPolicy}>
           {({ data, loading }) => {
             if (loading) {
@@ -167,24 +142,23 @@ export const IndexScreen = ({ navigation }) => {
               );
             }
 
-            const top10Ids =
-              data && data.publicJsonFile && JSON.parse(data.publicJsonFile.content).ids;
+            const top10Ids = data?.publicJsonFile?.content;
 
             return (
               <Query
-                query={GET_DIRECTUS}
-                variables={GET_COMMUNITIES_AND_TOP_10({ ids: top10Ids })}
+                query={GET_AREAS_AND_TOP_10}
+                variables={{
+                  areaId: secrets[namespace]?.busBb?.v2?.areaId?.toString(),
+                  ids: top10Ids
+                }}
                 fetchPolicy={fetchPolicy}
+                client={BBBusClient}
               >
                 {({ data, loading }) => {
                   if (loading) {
                     return (
                       <>
-                        <IndexFilterWrapperAndList
-                          filter={filter}
-                          selectedFilter={selectedFilter}
-                          setFilter={setFilter}
-                        />
+                        <IndexFilterWrapperAndList filter={filter} setFilter={setFilter} />
                         <LoadingContainer>
                           <ActivityIndicator color={colors.accent} />
                         </LoadingContainer>
@@ -192,20 +166,17 @@ export const IndexScreen = ({ navigation }) => {
                     );
                   }
 
-                  const communities = getCommunities(data);
+                  const areas = getAreas(data);
                   const top10 = getTop10(data, top10Ids);
 
                   return (
                     <>
-                      <IndexFilterWrapperAndList
-                        filter={filter}
-                        selectedFilter={selectedFilter}
-                        setFilter={setFilter}
-                      />
+                      <IndexFilterWrapperAndList filter={filter} setFilter={setFilter} />
                       <Query
-                        query={GET_DIRECTUS}
-                        variables={GET_SERVICES(queryVariables)}
+                        query={GET_SERVICES}
+                        variables={{ areaId }}
                         fetchPolicy={fetchPolicy}
+                        client={BBBusClient}
                       >
                         {({ data, loading, client }) => {
                           if (loading) {
@@ -215,7 +186,7 @@ export const IndexScreen = ({ navigation }) => {
                                 selectedFilter={selectedFilter}
                                 areaId={areaId}
                                 setAreaId={setAreaId}
-                                communities={communities}
+                                areas={areas}
                                 top10={top10}
                                 client={client}
                                 fetchPolicy={fetchPolicy}
@@ -236,13 +207,9 @@ export const IndexScreen = ({ navigation }) => {
                             );
                           }
 
-                          data =
-                            data &&
-                            data.directus &&
-                            data.directus.service &&
-                            data.directus.service.data;
-
-                          const results = data && data.length ? getListItems(data, areaId) : [];
+                          const results = data?.publicServiceTypes?.length
+                            ? getListItems(data.publicServiceTypes, areaId)
+                            : [];
 
                           return (
                             <ServiceList
@@ -251,7 +218,7 @@ export const IndexScreen = ({ navigation }) => {
                               results={results}
                               areaId={areaId}
                               setAreaId={setAreaId}
-                              communities={communities}
+                              areas={areas}
                               top10={top10}
                               client={client}
                               fetchPolicy={fetchPolicy}
@@ -275,21 +242,9 @@ export const IndexScreen = ({ navigation }) => {
             );
           }}
         </Query>
-      </KeyboardAvoidingView>
+      </DefaultKeyboardAvoidingView>
     </SafeAreaViewFlex>
   );
-};
-
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1
-  }
-});
-
-IndexScreen.navigationOptions = ({ navigation }) => {
-  return {
-    headerLeft: <HeaderLeft navigation={navigation} />
-  };
 };
 
 IndexScreen.propTypes = {

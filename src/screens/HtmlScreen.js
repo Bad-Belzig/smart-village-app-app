@@ -1,38 +1,40 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView } from 'react-native';
-import { Query } from 'react-apollo';
-import { useMatomo } from 'matomo-tracker-react-native';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { RefreshControl, ScrollView } from 'react-native';
 
-import { NetworkContext } from '../NetworkProvider';
 import { auth } from '../auth';
-import { colors, consts } from '../config';
 import {
   Button,
-  HeaderLeft,
+  EmptyMessage,
   HtmlView,
-  LoadingContainer,
   SafeAreaViewFlex,
   Wrapper,
   WrapperWithOrientation
 } from '../components';
-import { graphqlFetchPolicy, trimNewLines } from '../helpers';
-import { getQuery } from '../queries';
-import { useRefreshTime } from '../hooks';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { colors, consts, texts } from '../config';
+import { trimNewLines } from '../helpers';
+import { useStaticContent, useTrackScreenViewAsync } from '../hooks';
+import { NetworkContext } from '../NetworkProvider';
 
 const { MATOMO_TRACKING } = consts;
 
-export const HtmlScreen = ({ navigation }) => {
-  const { isConnected, isMainserverUp } = useContext(NetworkContext);
-  const query = navigation.getParam('query', '');
-  const queryVariables = navigation.getParam('queryVariables', '');
-  const title = navigation.getParam('title', '');
+// eslint-disable-next-line complexity
+export const HtmlScreen = ({ navigation, route }) => {
+  const { isConnected } = useContext(NetworkContext);
+  const query = route.params?.query ?? '';
+  const queryVariables = route.params?.queryVariables ?? {};
+  const title = route.params?.title ?? '';
   const [refreshing, setRefreshing] = useState(false);
-  const { trackScreenView } = useMatomo();
+  const trackScreenViewAsync = useTrackScreenViewAsync();
 
-  if (!query || !queryVariables || !queryVariables.name) return null;
+  if (!query || !queryVariables?.name) return <EmptyMessage title={texts.empty.content} />;
 
-  const refreshTime = useRefreshTime(`${query}-${queryVariables.name}`);
+  const { data, loading, refetch } = useStaticContent({
+    name: queryVariables.name,
+    type: 'html',
+    refreshTimeKey: `${query}-${queryVariables.name}`
+  });
 
   useEffect(() => {
     isConnected && auth();
@@ -40,36 +42,23 @@ export const HtmlScreen = ({ navigation }) => {
 
   // NOTE: we cannot use the `useMatomoTrackScreenView` hook here, as we need the `title` dependency
   useEffect(() => {
-    isConnected && title && trackScreenView(`${MATOMO_TRACKING.SCREEN_VIEW.HTML} / ${title}`);
+    isConnected && title && trackScreenViewAsync(`${MATOMO_TRACKING.SCREEN_VIEW.HTML} / ${title}`);
   }, [title]);
 
-  if (!refreshTime) {
-    return (
-      <LoadingContainer>
-        <ActivityIndicator color={colors.accent} />
-      </LoadingContainer>
-    );
-  }
-
-  const refresh = async (refetch) => {
+  const refresh = useCallback(async () => {
     setRefreshing(true);
-    isConnected && (await refetch());
+    isConnected && (await refetch?.());
     setRefreshing(false);
-  };
-  const rootRouteName = navigation.getParam('rootRouteName', '');
-  const subQuery = navigation.getParam('subQuery', '');
-  const fetchPolicy = graphqlFetchPolicy({
-    isConnected,
-    isMainserverUp,
-    refreshTime
-  });
+  }, [isConnected, refetch]);
+  const subQuery = route.params?.subQuery ?? '';
+  const rootRouteName = route.params?.rootRouteName ?? '';
 
-  // action to open source urls
-  const openWebScreen = (param) => {
+  // action to open source urls or navigate to sub screens
+  const navigate = (param) => {
     // if the `param` is a string, it is directly the web url to call
     if (!!param && typeof param === 'string') {
       return navigation.navigate({
-        routeName: 'Web',
+        name: 'Web',
         params: {
           title,
           webUrl: param,
@@ -81,7 +70,7 @@ export const HtmlScreen = ({ navigation }) => {
     // if the `param` is an object, it contains a `routeName` and a `webUrl`
     if (!!param && typeof param === 'object') {
       return navigation.navigate({
-        routeName: param.routeName,
+        name: param.routeName,
         params: {
           title,
           webUrl: param.webUrl,
@@ -90,89 +79,71 @@ export const HtmlScreen = ({ navigation }) => {
       });
     }
 
-    // if there is no `param`, use the main `subQuery` values for `routeName` and a `webUrl`
+    const subParams = { ...(subQuery.params ?? {}) };
+
+    // if there is no `param`, use the main `subQuery` values for `routeName` and a `webUrl` or `params`
+    // if the params contain a webUrl as well, the webUrl property of the subQuery will be ignored
     return navigation.navigate({
-      routeName: subQuery.routeName,
+      name: subQuery.routeName,
       params: {
         title,
         webUrl: subQuery.webUrl,
-        rootRouteName
+        rootRouteName,
+        ...subParams
       }
     });
   };
 
+  if (loading) {
+    return <LoadingSpinner loading />;
+  }
+
+  if (!data) return null;
+
   return (
-    <Query
-      query={getQuery(query)}
-      variables={{ name: queryVariables.name }}
-      fetchPolicy={fetchPolicy}
-    >
-      {({ data, loading, refetch }) => {
-        if (loading) {
-          return (
-            <LoadingContainer>
-              <ActivityIndicator color={colors.accent} />
-            </LoadingContainer>
-          );
+    <SafeAreaViewFlex>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => refresh(refetch)}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+          />
         }
+      >
+        <WrapperWithOrientation>
+          <Wrapper>
+            <HtmlView html={trimNewLines(data)} openWebScreen={navigate} navigation={navigation} />
+            {!!subQuery && !!subQuery.routeName && (!!subQuery.webUrl || subQuery.params) && (
+              <Button
+                title={subQuery.buttonTitle || `${title} öffnen`}
+                onPress={() => navigate()}
+              />
+            )}
 
-        if (!data || !data.publicHtmlFile || !data.publicHtmlFile.content) return null;
-
-        return (
-          <SafeAreaViewFlex>
-            <ScrollView
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={() => refresh(refetch)}
-                  colors={[colors.accent]}
-                  tintColor={colors.accent}
+            {!!subQuery &&
+              !!subQuery.buttons &&
+              subQuery.buttons.map((button, index) => (
+                <Button
+                  key={`${index}-${button.webUrl}`}
+                  title={button.buttonTitle || `${title} öffnen`}
+                  onPress={() =>
+                    navigate({
+                      routeName: button.routeName,
+                      webUrl: button.webUrl
+                    })
+                  }
                 />
-              }
-            >
-              <WrapperWithOrientation>
-                <Wrapper>
-                  <HtmlView
-                    html={trimNewLines(data.publicHtmlFile.content)}
-                    openWebScreen={openWebScreen}
-                    navigation={navigation}
-                  />
-                  {!!subQuery && !!subQuery.routeName && !!subQuery.webUrl && (
-                    <Button
-                      title={subQuery.buttonTitle || `${title} öffnen`}
-                      onPress={() => openWebScreen()}
-                    />
-                  )}
-                  {!!subQuery &&
-                    !!subQuery.buttons &&
-                    subQuery.buttons.map((button, index) => (
-                      <Button
-                        key={`${index}-${button.webUrl}`}
-                        title={button.buttonTitle || `${title} öffnen`}
-                        onPress={() =>
-                          openWebScreen({
-                            routeName: button.routeName,
-                            webUrl: button.webUrl
-                          })
-                        }
-                      />
-                    ))}
-                </Wrapper>
-              </WrapperWithOrientation>
-            </ScrollView>
-          </SafeAreaViewFlex>
-        );
-      }}
-    </Query>
+              ))}
+          </Wrapper>
+        </WrapperWithOrientation>
+      </ScrollView>
+    </SafeAreaViewFlex>
   );
 };
 
-HtmlScreen.navigationOptions = ({ navigation }) => {
-  return {
-    headerLeft: <HeaderLeft navigation={navigation} />
-  };
-};
-
 HtmlScreen.propTypes = {
-  navigation: PropTypes.object.isRequired
+  navigation: PropTypes.object.isRequired,
+  route: PropTypes.object.isRequired
 };

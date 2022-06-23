@@ -1,66 +1,93 @@
 import PropTypes from 'prop-types';
-import React, { useContext } from 'react';
-import { View } from 'react-native';
-import { useQuery } from 'react-apollo';
+import React, { useContext, useState } from 'react';
+import { ActivityIndicator, RefreshControl, SectionList } from 'react-native';
 
+import { colors, texts } from '../../config';
+import { useHomeRefresh, useRenderItem, useStaticContent } from '../../hooks';
 import { NetworkContext } from '../../NetworkProvider';
+import { QUERY_TYPES } from '../../queries';
 import { SettingsContext } from '../../SettingsProvider';
-import { device, texts } from '../../config';
-import { Title, TitleContainer, TitleShadow } from '../Title';
-import { TextList } from '../TextList';
-import { getQuery, QUERY_TYPES } from '../../queries';
-import { graphqlFetchPolicy } from '../../helpers';
-import { useRefreshTime } from '../../hooks';
-import { useHomeRefresh } from '../../hooks/HomeRefresh';
+import { LoadingContainer } from '../LoadingContainer';
+import { SectionHeader } from '../SectionHeader';
+import { VersionNumber } from '../VersionNumber';
 
-export const About = ({ navigation }) => {
-  const { isConnected, isMainserverUp } = useContext(NetworkContext);
+export const About = ({ navigation, withHomeRefresh, withSettings }) => {
+  const { data, loading, refetch } = useStaticContent({
+    name: 'homeAbout',
+    type: 'json',
+    refreshTimeKey: 'publicJsonFile-homeAbout'
+  });
+  const { isConnected } = useContext(NetworkContext);
   const { globalSettings } = useContext(SettingsContext);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const refreshTime = useRefreshTime('publicJsonFile-homeAbout');
+  useHomeRefresh(withHomeRefresh ? refetch : undefined);
 
-  const fetchPolicy = graphqlFetchPolicy({
-    isConnected,
-    isMainserverUp,
-    refreshTime
-  });
+  const refresh = async (refetch) => {
+    if (withHomeRefresh) {
+      return;
+    }
 
-  const { data, loading, refetch } = useQuery(getQuery(QUERY_TYPES.PUBLIC_JSON_FILE), {
-    variables: { name: 'homeAbout' },
-    fetchPolicy,
-    skip: !refreshTime
-  });
+    setRefreshing(true);
+    isConnected && (await refetch());
+    setRefreshing(false);
+  };
 
-  useHomeRefresh(refetch);
+  const renderItem = useRenderItem(QUERY_TYPES.PUBLIC_JSON_FILE, navigation);
 
-  if (!refreshTime || loading) return null;
+  if (loading)
+    return withHomeRefresh ? null : (
+      <LoadingContainer>
+        <ActivityIndicator color={colors.accent} />
+      </LoadingContainer>
+    );
 
-  let publicJsonFileContent = [];
-
-  try {
-    publicJsonFileContent = JSON.parse(data?.publicJsonFile?.content);
-  } catch (error) {
-    console.warn(error, data);
-  }
-
-  if (!publicJsonFileContent?.length) return null;
+  if (!data?.length) return <VersionNumber />;
 
   const { sections = {} } = globalSettings;
   const { headlineAbout = texts.homeTitles.about } = sections;
 
+  const sectionData = [
+    {
+      title: headlineAbout,
+      data
+    }
+  ];
+
+  if (withSettings) {
+    sectionData.push({
+      title: texts.screenTitles.settings,
+      data: [
+        {
+          title: texts.screenTitles.appSettings,
+          routeName: 'Settings'
+        }
+      ]
+    });
+  }
+
   return (
-    <View>
-      {!!headlineAbout && (
-        <TitleContainer>
-          <Title accessibilityLabel={`${headlineAbout} (Überschrift)`}>{headlineAbout}</Title>
-        </TitleContainer>
-      )}
-      {!!headlineAbout && device.platform === 'ios' && <TitleShadow />}
-      <TextList navigation={navigation} data={publicJsonFileContent} noSubtitle />
-    </View>
+    <SectionList
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => refresh(refetch)}
+          colors={[colors.accent]}
+          tintColor={colors.accent}
+        />
+      }
+      sections={sectionData}
+      renderSectionHeader={({ section: { title } }) => <SectionHeader title={title} />}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.title}
+      ListFooterComponent={<VersionNumber />}
+    />
   );
 };
 
 About.propTypes = {
-  navigation: PropTypes.object.isRequired
+  navigation: PropTypes.object.isRequired,
+  sectionData: PropTypes.array,
+  withHomeRefresh: PropTypes.bool,
+  withSettings: PropTypes.bool
 };

@@ -1,9 +1,66 @@
 const ONCE_A_DAY = 'ONCE_A_DAY';
 const ONCE_PER_HOUR = 'ONCE_PER_HOUR';
+const NEVER = 'NEVER';
 
 export const consts = {
-  DRAWER: 'drawer',
-  TABS: 'tabs',
+  a11yLabel: {
+    address: '(Adresse)',
+    appVersion: '(App-Version)',
+    backIcon: 'Zurück (Taste)',
+    backIconHint: 'Navigieren zurück zur vorherigen Seite',
+    birthDate: 'Geburtsdatum',
+    birthDateHint: 'Öffnet Datumsauswahl',
+    bookmarkList: 'Lesezeichenliste (Taste)',
+    bookmarkListHint: '(Zu der Lesezeichenliste hinzufügen)',
+    button: '(Taste)',
+    category: '(Kategorie)',
+    changeImage: 'Bild ändern',
+    closeMenuIcon: 'Schließen (Taste)',
+    closeMenuHint: 'Menü schließen',
+    encounterId: 'Identifikationsnummer',
+    encounterIdInfo: 'Informationen zur Identifikationsnummer',
+    fax: '(Fax)',
+    firstName: 'Vorname',
+    heading: '(Überschrift)',
+    image: '(Bild)',
+    imageCarousel: '(Bild des Bildkarussells)',
+    infoProvider: 'Anbieterinformationen (Taste)',
+    password: 'Kennwort',
+    lastName: 'Nachname',
+    link: '(Link)',
+    lunch: 'Mittagstisch(Gerichtname)',
+    mail: '(E-Mail-Adresse)',
+    mailHint: '(Wechselt zur E-Mail-App)',
+    mapHint: '(Wechselt zur Karten-App)',
+    openMenuHint: 'Navigiert zum Menü',
+    openMenuIcon: 'Menü (Taste)',
+    phoneNumber: '(Telefonnummer)',
+    phoneAppHint: '(Wechselt zur Telefon-App)',
+    price: '(Preis)',
+    privacy: 'Datenschutz',
+    poiCount: '(Anzahl verfügbarer Einträge)',
+    settingsIcon: 'Einstellungen (Taste)',
+    settingsHint: 'Anpassen des Layouts von',
+    settingsIconHint: 'Zu den Einstellungen wechseln',
+    settingsBookmarksIcon: 'Einstellungen und Lesezeichen (Taste)',
+    settingsBookmarksHint: 'Zu den Einstellungen und Lesezeichen wechseln',
+    shareIcon: 'Teilen (Taste)',
+    shareHint: 'Inhalte auf der Seite teilen',
+    textInput: 'Texteingabe',
+    username: 'Benutzername',
+    verified: 'Verifiziert',
+    verifiedInfo: 'Informationen zur Verifikation',
+    website: '(Webseite)',
+    webViewHint: '(Öffnet Webseite in der aktuellen App)'
+  },
+
+  // e-mail regex found at https://emailregex.com
+  EMAIL_REGEX: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  IMAGE_TYPE_REGEX: /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i,
+  JPG_TYPE_REGEX: /\.jpe?g$/i,
+  PDF_TYPE_REGEX: /\.pdf$/i,
+  // url regex found at https://uibakery.io/regex-library/url
+  URL_REGEX: /^https?:\/\/(?:www\.)?[-a-z0-9@:%._\+~#=]{1,256}\.[a-z0-9()]{1,6}\b(?:[-a-z0-9()@:%_\+.~#?&\/=]*)$/i,
 
   POLL_INTERVALS: {
     WEATHER: 3600000
@@ -13,6 +70,7 @@ export const consts = {
     // refresh intervals per time:
     ONCE_A_DAY,
     ONCE_PER_HOUR,
+    NEVER,
     // refresh intervals per type:
     BB_BUS: ONCE_A_DAY,
     BOOKMARKS: ONCE_A_DAY,
@@ -76,6 +134,8 @@ export const consts = {
     NEWS_ITEMS: 'NewsItems',
     POINTS_OF_INTEREST_AND_TOURS: 'PointsOfInterestAndTours',
     POINTS_OF_INTEREST: 'PointsOfInterest',
-    TOURS: 'Tours'
+    TOURS: 'Tours',
+    VOLUNTEER: 'Volunteer',
+    CONSOLE_HOME: 'ConsulHome'
   }
 };

@@ -3,8 +3,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { consts, device } from '../../config';
-import { matomoTrackingString, momentFormat, trimNewLines } from '../../helpers';
-import { useMatomoTrackScreenView } from '../../hooks';
+import { matomoTrackingString, momentFormatUtcToLocal, trimNewLines } from '../../helpers';
+import { useMatomoTrackScreenView, useOpenWebScreen } from '../../hooks';
 import { DataProviderButton } from '../DataProviderButton';
 import { ImageSection } from '../ImageSection';
 import { Logo } from '../Logo';
@@ -18,7 +18,7 @@ const { MATOMO_TRACKING } = consts;
 
 /* eslint-disable complexity */
 /* NOTE: we need to check a lot for presence, so this is that complex */
-export const NewsItem = ({ data, navigation }) => {
+export const NewsItem = ({ data, route }) => {
   const {
     dataProvider,
     mainTitle,
@@ -31,21 +31,16 @@ export const NewsItem = ({ data, navigation }) => {
 
   const logo = dataProvider && dataProvider.logo && dataProvider.logo.url;
   const link = sourceUrl && sourceUrl.url;
-  const subtitle = `${momentFormat(publishedAt)} | ${dataProvider && dataProvider.name}`;
+  const subtitle = `${momentFormatUtcToLocal(publishedAt)} | ${dataProvider && dataProvider.name}`;
   // the title of a news item is either a given main title or the title from the first content block
   const title = mainTitle || (!!contentBlocks && !!contentBlocks.length && contentBlocks[0].title);
-  const rootRouteName = navigation.getParam('rootRouteName', '');
-  const headerTitle = navigation.getParam('title', '');
+  const rootRouteName = route.params?.rootRouteName ?? '';
+  const headerTitle = route.params?.title ?? '';
+  const shareContent = route.params?.shareContent;
+
   // action to open source urls
-  const openWebScreen = (webUrl) =>
-    navigation.navigate({
-      routeName: 'Web',
-      params: {
-        title: headerTitle,
-        webUrl: !!webUrl && typeof webUrl === 'string' ? webUrl : link,
-        rootRouteName
-      }
-    });
+  const openWebScreen = useOpenWebScreen(headerTitle, link, rootRouteName, shareContent);
+
   // the categories of a news item can be nested and we need the map of all names of all categories
   const categoryNames = categories && categories.map((category) => category.name).join(' / ');
 
@@ -60,6 +55,7 @@ export const NewsItem = ({ data, navigation }) => {
 
   const businessAccount = dataProvider?.dataType === 'business_account';
 
+  const a11yText = consts.a11yLabel;
   return (
     <View>
       {/* the images from the first content block will be present in the main image carousel */}
@@ -69,7 +65,7 @@ export const NewsItem = ({ data, navigation }) => {
         {!!title && !!link ? (
           <TitleContainer>
             <Touchable onPress={openWebScreen}>
-              <Title accessibilityLabel={`${trimNewLines(title)} (Überschrift)`}>
+              <Title accessibilityLabel={`${trimNewLines(title)} ${a11yText.heading}`}>
                 {trimNewLines(title)}
               </Title>
             </Touchable>
@@ -77,7 +73,7 @@ export const NewsItem = ({ data, navigation }) => {
         ) : (
           !!title && (
             <TitleContainer>
-              <Title accessibilityLabel={`${trimNewLines(title)} (Überschrift)`}>
+              <Title accessibilityLabel={`${trimNewLines(title)} ${a11yText.heading}`}>
                 {trimNewLines(title)}
               </Title>
             </TitleContainer>
@@ -100,9 +96,7 @@ export const NewsItem = ({ data, navigation }) => {
             />
           ))}
 
-        {!!businessAccount && (
-          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
-        )}
+        {!!businessAccount && <DataProviderButton dataProvider={dataProvider} />}
       </WrapperWithOrientation>
     </View>
   );
@@ -111,5 +105,6 @@ export const NewsItem = ({ data, navigation }) => {
 
 NewsItem.propTypes = {
   data: PropTypes.object.isRequired,
-  navigation: PropTypes.object.isRequired
+  navigation: PropTypes.object.isRequired,
+  route: PropTypes.object.isRequired
 };

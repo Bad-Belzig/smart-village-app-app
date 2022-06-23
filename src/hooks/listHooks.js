@@ -1,0 +1,111 @@
+/* eslint-disable react/prop-types */
+import { isArray } from 'lodash';
+import React, { useCallback, useContext } from 'react';
+
+import { CardListItem } from '../components/CardListItem';
+import { TextListItem } from '../components/TextListItem';
+import { VolunteerConversationListItem } from '../components/volunteer/VolunteerConversationListItem';
+import { VolunteerPostListItem } from '../components/volunteer/VolunteerPostListItem';
+import { consts } from '../config';
+import { QUERY_TYPES } from '../queries';
+import { SettingsContext } from '../SettingsProvider';
+
+const { LIST_TYPES } = consts;
+
+const getListType = (query, listTypesSettings) => {
+  switch (query) {
+    case QUERY_TYPES.POINTS_OF_INTEREST:
+    case QUERY_TYPES.TOURS:
+      return listTypesSettings[QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS];
+    case QUERY_TYPES.VOLUNTEER.ADDITIONAL:
+      return LIST_TYPES.CARD_LIST;
+    default:
+      return listTypesSettings[query];
+  }
+};
+
+/**
+ * this hook creates a render item function wrapped in a useCallback depending on the given options,
+ * as well as on the listTypesSettings of the SettingsContext
+ * @param {string} query
+ * @param {any} navigation
+ * @param {{ horizontal?: boolean; noSubtitle?: boolean; }} options
+ * @returns renderItem function
+ */
+export const useRenderItem = (query, navigation, options = {}) => {
+  const { listTypesSettings } = useContext(SettingsContext);
+
+  const listType = getListType(query, listTypesSettings);
+
+  let renderItem;
+
+  switch (listType) {
+    case LIST_TYPES.CARD_LIST: {
+      renderItem = ({ item }) => (
+        <CardListItem navigation={navigation} horizontal={options.horizontal} item={item} />
+      );
+      break;
+    }
+    case LIST_TYPES.IMAGE_TEXT_LIST: {
+      renderItem = ({ item, index, section }) => (
+        <TextListItem
+          item={{
+            ...item,
+            bottomDivider:
+              item.bottomDivider ??
+              (isArray(section?.data) ? section.data.length - 1 !== index : undefined)
+          }}
+          {...{ navigation, noSubtitle: options.noSubtitle, leftImage: true }}
+        />
+      );
+      break;
+    }
+    default: {
+      renderItem = ({ item, index, section }) => {
+        if (query === QUERY_TYPES.VOLUNTEER.POSTS) {
+          return (
+            <VolunteerPostListItem
+              post={item}
+              bottomDivider={isArray(section?.data) ? section.data.length - 1 !== index : undefined}
+              openWebScreen={options.openWebScreen}
+            />
+          );
+        }
+
+        if (query === QUERY_TYPES.VOLUNTEER.CONVERSATIONS) {
+          return (
+            <VolunteerConversationListItem
+              item={{
+                ...item,
+                bottomDivider: isArray(section?.data)
+                  ? section.data.length - 1 !== index
+                  : undefined
+              }}
+              navigation={navigation}
+            />
+          );
+        }
+
+        return (
+          <TextListItem
+            item={{
+              ...item,
+              bottomDivider: isArray(section?.data) ? section.data.length - 1 !== index : undefined
+            }}
+            {...{ navigation, noSubtitle: options.noSubtitle }}
+          />
+        );
+      };
+
+      break;
+    }
+  }
+
+  return useCallback(renderItem, [
+    query,
+    listType,
+    navigation,
+    options.horizontal,
+    options.noSubtitle
+  ]);
+};

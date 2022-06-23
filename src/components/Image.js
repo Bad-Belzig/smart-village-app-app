@@ -1,15 +1,16 @@
 import PropTypes from 'prop-types';
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { CacheManager } from 'react-native-expo-image-cache';
 import { Image as RNEImage } from 'react-native-elements';
+import { CacheManager } from 'react-native-expo-image-cache';
 
-import { colors } from '../config';
+import { colors, consts } from '../config';
 import { imageHeight, imageWidth } from '../helpers';
+import { useInterval } from '../hooks/TimeHooks';
 import { SettingsContext } from '../SettingsProvider';
+
 import { ImageMessage } from './ImageMessage';
 import { ImageRights } from './ImageRights';
-import { useInterval } from '../hooks';
 
 const addQueryParam = (url, param) => {
   if (!url?.length) return;
@@ -21,8 +22,9 @@ const addQueryParam = (url, param) => {
   return url.includes('?') ? `${url}&${param}` : `${url}?${param}`;
 };
 
+const NO_IMAGE = { uri: 'NO_IMAGE' };
+
 export const Image = ({
-  source,
   message,
   style,
   containerStyle,
@@ -30,11 +32,12 @@ export const Image = ({
   aspectRatio,
   resizeMode,
   borderRadius,
-  refreshInterval
+  refreshInterval,
+  source: sourceProp
 }) => {
-  const [uri, setUri] = useState(null);
+  const [source, setSource] = useState(null);
   const { globalSettings } = useContext(SettingsContext);
-  const refreshCount = useInterval(refreshInterval);
+  const timestamp = useInterval(refreshInterval);
 
   // only use cache when refreshInterval is undefined
   // if there is a source.uri to fetch, do it with the CacheManager and set the local path to show.
@@ -47,39 +50,68 @@ export const Image = ({
     // -> https://juliangaramendy.dev/use-promise-subscription/
     let mounted = true;
 
-    if (refreshInterval === undefined) {
-      source.uri
-        ? CacheManager.get(source.uri)
+    //  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label#using_a_labeled_block_with_break
+    effect: {
+      if (sourceProp.uri) {
+        sourceProp.uri = sourceProp.uri.trim?.();
+      }
+
+      // we do not want the refreshInterval or the caching to affect required static images or local images
+      if (!sourceProp.uri || sourceProp.uri.startsWith('file:///')) {
+        setSource(sourceProp);
+
+        break effect;
+      }
+
+      if (refreshInterval !== undefined) {
+        setSource({
+          uri: addQueryParam(sourceProp.uri, `svaRefreshCount=${timestamp}`)
+        });
+
+        // we do not want to use the cache when the refreshInterval is defined and can return immediately
+        break effect;
+      }
+
+      sourceProp.uri
+        ? CacheManager.get(sourceProp.uri)
             .getPath()
-            .then((path) => mounted && setUri(path))
-            .catch((err) =>
-              console.warn('An error occurred with cache management for an image', err)
-            )
-        : mounted && setUri(source);
-    } else {
-      // add an artificial query param to the end of the url to trigger a rerender and refetch
-      mounted && setUri(addQueryParam(source.uri ?? source, `svaRefreshCount=${refreshCount}`));
+            .then((path) => {
+              mounted && setSource({ uri: path ?? NO_IMAGE.uri });
+            })
+            .catch((err) => {
+              console.warn(
+                'An error occurred with cache management for an image',
+                sourceProp.uri,
+                err
+              );
+              mounted && setSource(NO_IMAGE);
+            })
+        : mounted && setSource(NO_IMAGE);
     }
 
     return () => (mounted = false);
-  }, [refreshCount, refreshInterval, source, setUri]);
+  }, [timestamp, refreshInterval, sourceProp, setSource]);
+
+  if (source?.uri === NO_IMAGE.uri) return null;
 
   return (
     <View>
       <RNEImage
-        source={uri ? (source.uri ? { uri } : uri) : null}
+        source={source}
         style={style || stylesForImage(aspectRatio).defaultStyle}
         containerStyle={containerStyle}
         PlaceholderContent={PlaceholderContent}
         placeholderStyle={{ backgroundColor: colors.transparent }}
-        accessible={!!source?.captionText}
-        accessibilityLabel={source?.captionText}
+        accessible={!!sourceProp?.captionText}
+        accessibilityLabel={`${sourceProp.captionText ? sourceProp.captionText : ''} ${
+          consts.a11yLabel.image
+        }`}
         resizeMode={resizeMode}
         borderRadius={borderRadius}
       >
         {!!message && <ImageMessage message={message} />}
-        {!!globalSettings?.showImageRights && !!source?.copyright && (
-          <ImageRights imageRights={source.copyright} />
+        {!!globalSettings?.showImageRights && !!sourceProp?.copyright && (
+          <ImageRights imageRights={sourceProp.copyright} />
         )}
       </RNEImage>
     </View>

@@ -1,56 +1,31 @@
 import PropTypes from 'prop-types';
 import React, { useContext } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useQuery } from 'react-apollo';
 
-import { NetworkContext } from '../../NetworkProvider';
+import { colors, consts, device, Icon, normalize, texts } from '../../config';
+import { useHomeRefresh, useStaticContent } from '../../hooks';
 import { OrientationContext } from '../../OrientationProvider';
 import { SettingsContext } from '../../SettingsProvider';
-import { colors, device, normalize, texts } from '../../config';
 import { DiagonalGradient } from '../DiagonalGradient';
 import { Image } from '../Image';
 import { ServiceBox } from '../ServiceBox';
 import { BoldText } from '../Text';
 import { Title, TitleContainer, TitleShadow } from '../Title';
 import { WrapperWrap } from '../Wrapper';
-import { getQuery, QUERY_TYPES } from '../../queries';
-import { Icon } from '../Icon';
-import { graphqlFetchPolicy } from '../../helpers';
-import { useRefreshTime } from '../../hooks';
-import { useHomeRefresh } from '../../hooks/HomeRefresh';
 
 export const Service = ({ navigation }) => {
-  const { isConnected, isMainserverUp } = useContext(NetworkContext);
   const { orientation, dimensions } = useContext(OrientationContext);
   const { globalSettings } = useContext(SettingsContext);
 
-  const refreshTime = useRefreshTime('publicJsonFile-homeService');
-
-  const fetchPolicy = graphqlFetchPolicy({
-    isConnected,
-    isMainserverUp,
-    refreshTime
-  });
-
-  const { data, loading, refetch } = useQuery(getQuery(QUERY_TYPES.PUBLIC_JSON_FILE), {
-    variables: { name: 'homeService' },
-    fetchPolicy,
-    skip: !refreshTime
+  const { data, loading, refetch } = useStaticContent({
+    refreshTimeKey: 'publicJsonFile-homeService',
+    name: 'homeService',
+    type: 'json'
   });
 
   useHomeRefresh(refetch);
 
-  if (!refreshTime || loading) return null;
-
-  let publicJsonFileContent = [];
-
-  try {
-    publicJsonFileContent = JSON.parse(data?.publicJsonFile?.content);
-  } catch (error) {
-    console.warn(error, data);
-  }
-
-  if (!publicJsonFileContent?.length) return null;
+  if (loading || !data?.length) return null;
 
   const { sections = {} } = globalSettings;
   const { headlineService = texts.homeTitles.service } = sections;
@@ -59,13 +34,15 @@ export const Service = ({ navigation }) => {
     <View>
       {!!headlineService && (
         <TitleContainer>
-          <Title accessibilityLabel={`${headlineService} (Überschrift)`}>{headlineService}</Title>
+          <Title accessibilityLabel={`(${headlineService}) ${consts.a11yLabel.heading}`}>
+            {headlineService}
+          </Title>
         </TitleContainer>
       )}
       {!!headlineService && device.platform === 'ios' && <TitleShadow />}
       <DiagonalGradient style={{ padding: normalize(14) }}>
         <WrapperWrap spaceBetween>
-          {publicJsonFileContent.map((item, index) => {
+          {data.map((item, index) => {
             return (
               <ServiceBox
                 key={index + item.title}
@@ -75,18 +52,18 @@ export const Service = ({ navigation }) => {
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate({
-                      routeName: item.routeName,
+                      name: item.routeName,
                       params: item.params
                     })
                   }
                 >
                   <View>
                     {item.iconName ? (
-                      <Icon
+                      <Icon.NamedIcon
+                        color={colors.lightestText}
                         name={item.iconName}
                         size={30}
                         style={styles.serviceIcon}
-                        iconColor={colors.lightestText}
                       />
                     ) : (
                       <Image
@@ -96,7 +73,12 @@ export const Service = ({ navigation }) => {
                         resizeMode="contain"
                       />
                     )}
-                    <BoldText small lightest center accessibilityLabel={`${item.title} (Taste)`}>
+                    <BoldText
+                      small
+                      lightest
+                      center
+                      accessibilityLabel={`(${item.title}) ${consts.a11yLabel.button}`}
+                    >
                       {item.title}
                     </BoldText>
                   </View>

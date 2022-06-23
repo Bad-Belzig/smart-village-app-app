@@ -1,68 +1,42 @@
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Keyboard, StyleSheet, View } from 'react-native';
+import { useQuery } from 'react-apollo';
+import {
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
-import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 
 import {
   Button,
-  HeaderLeft,
-  Icon,
   LoadingContainer,
   NoTouchDay,
   RegularText,
+  renderArrow,
   SafeAreaViewFlex,
   WasteCalendarLegend,
   Wrapper,
   WrapperWithOrientation
 } from '../components';
-import { colors, device, normalize, texts } from '../config';
-import { arrowLeft, arrowRight } from '../icons';
-import { useQuery } from 'react-apollo';
-import { getQuery, QUERY_TYPES } from '../queries';
-import { useRefreshTime } from '../hooks';
-import { graphqlFetchPolicy } from '../helpers';
+import { FeedbackFooter } from '../components/FeedbackFooter';
+import { colors, device, namespace, normalize, secrets, staticRestSuffix, texts } from '../config';
+import { graphqlFetchPolicy, openLink, setupLocales } from '../helpers';
+import { useRefreshTime, useStaticContent } from '../hooks';
 import { NetworkContext } from '../NetworkProvider';
 import { getInAppPermission, showPermissionRequiredAlert } from '../pushNotifications';
+import { getQuery, QUERY_TYPES } from '../queries';
 
 const dotSize = 6;
 
-LocaleConfig.locales['de'] = {
-  monthNames: [
-    'Januar',
-    'Februar',
-    'März',
-    'April',
-    'Mai',
-    'Juni',
-    'Juli',
-    'August',
-    'September',
-    'Oktober',
-    'November',
-    'Dezember'
-  ],
-  monthNamesShort: [
-    'Jan.',
-    'Feb.',
-    'Mär.',
-    'Apr.',
-    'Mai',
-    'Jun.',
-    'Jul.',
-    'Aug.',
-    'Sep.',
-    'Okt.',
-    'Nov.',
-    'Dez.'
-  ],
-  dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-  dayNamesShort: ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'],
-  today: 'Heute'
-};
-LocaleConfig.defaultLocale = 'de';
+setupLocales();
 
 const getMarkedDates = (types, streetData) => {
   let markedDates = {};
@@ -97,12 +71,13 @@ const getMarkedDates = (types, streetData) => {
   return markedDates;
 };
 
-const renderArrow = (direction) =>
-  direction === 'right' ? (
-    <Icon xml={arrowRight(colors.primary)} style={styles.icon} />
-  ) : (
-    <Icon xml={arrowLeft(colors.primary)} style={styles.icon} />
-  );
+const getLocationData = (streetData) => {
+  return {
+    city: streetData?.wasteAddresses?.[0]?.city,
+    street: streetData?.wasteAddresses?.[0]?.street,
+    zip: streetData?.wasteAddresses?.[0]?.zip
+  };
+};
 
 // show streets that contain the string in it
 // return empty list on an exact match (except for capitalization)
@@ -127,7 +102,6 @@ export const WasteCollectionScreen = ({ navigation }) => {
   const [selectedStreetId, setSelectedStreetId] = useState();
 
   const addressesRefreshTime = useRefreshTime('waste-addresses');
-  const typesRefreshTime = useRefreshTime('waste-types');
   const streetRefreshTime = useRefreshTime(`waste-${selectedStreetId}`);
 
   const addressesFetchPolicy = graphqlFetchPolicy({
@@ -142,25 +116,16 @@ export const WasteCollectionScreen = ({ navigation }) => {
     refreshTime: streetRefreshTime
   });
 
-  const typesFetchPolicy = graphqlFetchPolicy({
-    isConnected,
-    isMainserverUp,
-    refreshTime: typesRefreshTime
-  });
-
   const { data, loading } = useQuery(getQuery(QUERY_TYPES.WASTE_ADDRESSES), {
     fetchPolicy: addressesFetchPolicy,
     skip: !addressesRefreshTime
   });
 
-  const { data: typesData, loading: typesLoading } = useQuery(
-    getQuery(QUERY_TYPES.PUBLIC_JSON_FILE),
-    {
-      variables: { name: 'wasteTypes' },
-      fetchPolicy: typesFetchPolicy,
-      skip: !typesRefreshTime
-    }
-  );
+  const { data: typesData, loading: typesLoading } = useStaticContent({
+    refreshTimeKey: 'waste-types',
+    name: 'wasteTypes',
+    type: 'json'
+  });
 
   // only query if we have a street selected
   const { data: streetData } = useQuery(getQuery(QUERY_TYPES.WASTE_STREET), {
@@ -171,20 +136,11 @@ export const WasteCollectionScreen = ({ navigation }) => {
 
   const addressesData = data?.wasteAddresses;
 
-  let parsedTypesData;
-  try {
-    if (typesData?.publicJsonFile?.content) {
-      parsedTypesData = JSON.parse(typesData.publicJsonFile.content);
-    }
-  } catch (error) {
-    console.warn(error, data);
-  }
-
   let usedTypes = {};
   streetData?.[QUERY_TYPES.WASTE_ADDRESSES]?.[0]?.wasteLocationTypes?.forEach(
     (wasteLocationType) => {
-      if (parsedTypesData?.[wasteLocationType.wasteType])
-        usedTypes[wasteLocationType.wasteType] = parsedTypesData?.[wasteLocationType.wasteType];
+      if (typesData?.[wasteLocationType.wasteType])
+        usedTypes[wasteLocationType.wasteType] = typesData?.[wasteLocationType.wasteType];
     }
   );
 
@@ -204,12 +160,41 @@ export const WasteCollectionScreen = ({ navigation }) => {
     [setInputValue]
   );
 
+  const triggerExport = useCallback(() => {
+    const { street, zip, city } = getLocationData(streetData);
+
+    const baseUrl = secrets[namespace].serverUrl + staticRestSuffix.wasteCalendarExport;
+
+    const params = `street=${encodeURIComponent(street)}&zip=${encodeURIComponent(
+      zip
+    )}&city=${encodeURIComponent(city)}`;
+
+    const combinedUrl = baseUrl + params;
+
+    if (device.platform === 'android') {
+      Alert.alert(
+        texts.wasteCalendar.exportAlertTitle,
+        texts.wasteCalendar.exportAlertBody,
+        [
+          {
+            onPress: () => {
+              openLink(combinedUrl);
+            }
+          }
+        ],
+        {
+          onDismiss: () => {
+            openLink(combinedUrl);
+          }
+        }
+      );
+    } else {
+      openLink(combinedUrl);
+    }
+  }, [isMainserverUp, streetData]);
+
   const goToReminder = useCallback(async () => {
-    const locationData = {
-      city: streetData?.wasteAddresses?.[0]?.city,
-      street: streetData?.wasteAddresses?.[0]?.street,
-      zip: streetData?.wasteAddresses?.[0]?.zip
-    };
+    const locationData = getLocationData(streetData);
 
     const navigate = () =>
       navigation.navigate('WasteReminder', { wasteTypes: usedTypes, locationData });
@@ -262,7 +247,7 @@ export const WasteCollectionScreen = ({ navigation }) => {
           <View style={styles.topMarginContainer}>
             <Calendar
               dayComponent={NoTouchDay}
-              markedDates={getMarkedDates(parsedTypesData, streetData)}
+              markedDates={getMarkedDates(typesData, streetData)}
               markingType="multi-dot"
               renderArrow={renderArrow}
               theme={{
@@ -284,9 +269,11 @@ export const WasteCollectionScreen = ({ navigation }) => {
           {!!streetData && !!usedTypes && (
             <Wrapper>
               <Button title={texts.wasteCalendar.configureReminder} onPress={goToReminder} />
+              <Button title={texts.wasteCalendar.exportCalendar} onPress={triggerExport} />
             </Wrapper>
           )}
         </WrapperWithOrientation>
+        <FeedbackFooter />
       </ScrollView>
     </SafeAreaViewFlex>
   );
@@ -306,29 +293,22 @@ const styles = StyleSheet.create({
       : {},
   autoCompleteInput: {
     color: colors.darkText,
-    fontFamily: 'titillium-web-regular',
+    fontFamily: 'regular',
     fontSize: normalize(16),
     padding: normalize(8)
   },
   autoCompleteList: {
     margin: 0
   },
-  icon: {
-    paddingHorizontal: normalize(14)
-  },
-  topMarginContainer:
-    device.platform === 'android'
-      ? {
-          marginTop: normalize(44)
-        }
-      : {}
+  topMarginContainer: {
+    ...Platform.select({
+      android: {
+        marginTop: normalize(44)
+      },
+      ios: {}
+    })
+  }
 });
-
-WasteCollectionScreen.navigationOptions = ({ navigation }) => {
-  return {
-    headerLeft: <HeaderLeft navigation={navigation} />
-  };
-};
 
 WasteCollectionScreen.propTypes = {
   navigation: PropTypes.object.isRequired

@@ -1,13 +1,11 @@
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import React, { useContext } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { colors, consts, normalize } from '../config';
-
+import { colors, consts, normalize, texts } from '../config';
 import {
   BoldText,
-  HeaderLeft,
   Image,
   RegularText,
   SafeAreaViewFlex,
@@ -19,9 +17,9 @@ import {
   WrapperWrap
 } from '../components';
 import { locationIconAnchor, location as locationIcon } from '../icons';
-import { useMatomoTrackScreenView } from '../hooks';
-import { ConstructionSiteContext } from '../ConstructionSiteProvider';
+import { useConstructionSites, useMatomoTrackScreenView } from '../hooks';
 import { momentFormat } from '../helpers';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const { MATOMO_TRACKING } = consts;
 
@@ -41,12 +39,18 @@ const formatDates = (startDate, endDate) => {
   return formattedEndDate ? `${formattedStartDate} - ${formattedEndDate}` : formattedStartDate;
 };
 
-export const ConstructionSiteDetailScreen = ({ navigation }) => {
-  const { constructionSites } = useContext(ConstructionSiteContext);
+// eslint-disable-next-line complexity
+export const ConstructionSiteDetailScreen = ({ route }) => {
+  const id = route.params?.id;
+  const { constructionSites, loading, refresh, refreshing } = useConstructionSites(id);
 
-  const index = navigation.getParam('index');
+  useMatomoTrackScreenView(
+    `${MATOMO_TRACKING.SCREEN_VIEW.CONSTRUCTION_SITE_DETAIL} / ${
+      id ?? texts.screenTitles.constructionSite
+    }`
+  );
 
-  if (typeof index !== 'number') return null;
+  if (!id || !constructionSites.length) return null;
 
   const {
     category,
@@ -54,25 +58,43 @@ export const ConstructionSiteDetailScreen = ({ navigation }) => {
     description,
     direction,
     endDate,
-    imageUri,
+    image,
     location,
     locationDescription,
     restrictions,
     startDate,
     title
-  } = constructionSites[index];
-
-  useMatomoTrackScreenView(`${MATOMO_TRACKING.SCREEN_VIEW.CONSTRUCTION_SITE_DETAIL} / ${title}`);
+  } = constructionSites[0];
 
   const extendedTitle = (category ? `${category} - ` : '') + title;
   const formattedDates = formatDates(startDate, endDate);
 
+  if (loading) {
+    return <LoadingSpinner loading />;
+  }
+
   return (
     <SafeAreaViewFlex>
-      <ScrollView keyboardShouldPersistTaps="handled">
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+          />
+        }
+      >
         <WrapperWithOrientation>
-          {!!imageUri && (
-            <Image source={{ uri: imageUri }} containerStyle={styles.imageContainer} />
+          {!!image?.url && (
+            <Image
+              source={{
+                captionText: image.captionText,
+                imageRights: image.copyright,
+                uri: image.url
+              }}
+              containerStyle={styles.imageContainer}
+            />
           )}
           <TitleContainer>
             <Title>{extendedTitle}</Title>
@@ -109,7 +131,7 @@ export const ConstructionSiteDetailScreen = ({ navigation }) => {
             {!!restrictions?.length && (
               <View style={styles.verticalPadding}>
                 <BoldText>Aktuelle Einschränkungen: </BoldText>
-                {restrictions.map((restriction) => (
+                {restrictions.map((restriction, index) => (
                   <RegularText key={`restriction-${index}`}>- {restriction}</RegularText>
                 ))}
               </View>
@@ -133,12 +155,6 @@ export const ConstructionSiteDetailScreen = ({ navigation }) => {
   );
 };
 
-ConstructionSiteDetailScreen.navigationOptions = ({ navigation }) => {
-  return {
-    headerLeft: <HeaderLeft navigation={navigation} />
-  };
-};
-
 const styles = StyleSheet.create({
   verticalPadding: {
     paddingTop: normalize(14)
@@ -149,5 +165,5 @@ const styles = StyleSheet.create({
 });
 
 ConstructionSiteDetailScreen.propTypes = {
-  navigation: PropTypes.object.isRequired
+  route: PropTypes.object.isRequired
 };

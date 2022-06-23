@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/core';
 import React, { useCallback, useContext } from 'react';
 import { useQuery } from 'react-apollo';
 import { StyleSheet, View } from 'react-native';
@@ -5,7 +6,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 
 import { consts, normalize, texts } from '../../config';
 import { graphqlFetchPolicy } from '../../helpers';
-import { useHomeRefresh } from '../../hooks/HomeRefresh';
+import { useHomeRefresh } from '../../hooks';
 import { NetworkContext } from '../../NetworkProvider';
 import { getQuery, QUERY_TYPES } from '../../queries';
 import { WidgetProps } from '../../types';
@@ -15,7 +16,8 @@ import { WrapperRow, WrapperVertical } from '../Wrapper';
 
 const { POLL_INTERVALS } = consts;
 
-export const WeatherWidget = ({ navigation, text }: WidgetProps) => {
+export const WeatherWidget = ({ text }: WidgetProps) => {
+  const navigation = useNavigation();
   const { isConnected, isMainserverUp } = useContext(NetworkContext);
   const fetchPolicy = graphqlFetchPolicy({ isConnected, isMainserverUp });
   const queryVariables =

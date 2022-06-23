@@ -1,13 +1,12 @@
+import { NavigationProp } from '@react-navigation/core';
 import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Divider } from 'react-native-elements';
-import { NavigationScreenProp } from 'react-navigation';
 
-import { colors, normalize, texts } from '../../config';
+import { colors, consts, Icon, normalize, texts } from '../../config';
 import { formatAddress, shareMessage } from '../../helpers';
-import { location } from '../../icons';
+import { useOpenWebScreen } from '../../hooks';
 import { QUERY_TYPES } from '../../queries';
-import { Icon } from '../Icon';
 import { InfoCard } from '../infoCard';
 import { Logo } from '../Logo';
 import { BoldText, RegularText } from '../Text';
@@ -58,7 +57,7 @@ export type LunchOfferData = {
 
 type Props = {
   lunchOfferData: LunchOfferData;
-  navigation: NavigationScreenProp<never>;
+  navigation: NavigationProp<any>;
 };
 
 const parseAttributes = (input?: string) => {
@@ -76,10 +75,12 @@ const parseAttributes = (input?: string) => {
 const LunchOffer = ({ name, price }: { name: string; price: string }) => (
   <View style={styles.container}>
     <View style={styles.nameContainer}>
-      <RegularText accessibilityLabel={`Mittagstisch (Gerichtname): ${name}`}>{name}</RegularText>
+      <RegularText accessibilityLabel={`${consts.a11yLabel.lunch} (${name})`}>{name}</RegularText>
     </View>
     <View style={styles.priceContainer}>
-      <RegularText accessibilityLabel={`Preis (${name}): ${price}`}>{price}</RegularText>
+      <RegularText accessibilityLabel={`${consts.a11yLabel.price} (${name}): ${price}`}>
+        {price}
+      </RegularText>
     </View>
   </View>
 );
@@ -106,23 +107,13 @@ export const LunchSection = ({ lunchOfferData, navigation }: Props) => {
     webUrls: contactWebUrls ? contact?.webUrls : []
   };
 
-  const openWebScreen = useCallback(
-    (webUrl: string) =>
-      navigation.navigate({
-        routeName: 'Web',
-        params: {
-          title: 'Ort',
-          webUrl
-        }
-      }),
-    [navigation]
-  );
+  const openWebScreen = useOpenWebScreen('Ort');
 
   const onPress = useCallback(() => {
     if (!id) return;
 
     navigation.navigate({
-      routeName: 'Detail',
+      name: 'Detail',
       params: {
         title: texts.detailTitles.pointOfInterest,
         query: QUERY_TYPES.POINT_OF_INTEREST,
@@ -151,9 +142,9 @@ export const LunchSection = ({ lunchOfferData, navigation }: Props) => {
       <Wrapper>
         {!!logo && <Logo source={{ uri: logo }} />}
 
-        <TouchableOpacity accessibilityLabel="Anbieterinformationen (Taste)" onPress={onPress}>
+        <TouchableOpacity accessibilityLabel={consts.a11yLabel.infoProvider} onPress={onPress}>
           <InfoBox style={styles.addressContainer}>
-            <Icon xml={location(colors.primary)} style={styles.margin} />
+            <Icon.Location style={styles.margin} />
             <View style={styles.address}>
               <BoldText primary>{name}</BoldText>
               {!!address && <RegularText primary>{address}</RegularText>}

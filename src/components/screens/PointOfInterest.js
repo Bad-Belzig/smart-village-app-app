@@ -4,19 +4,20 @@ import { View } from 'react-native';
 
 import { colors, consts, device, texts } from '../../config';
 import { matomoTrackingString } from '../../helpers';
-import { useMatomoTrackScreenView } from '../../hooks';
+import { useMatomoTrackScreenView, useOpenWebScreen } from '../../hooks';
 import { location, locationIconAnchor } from '../../icons';
 import { NetworkContext } from '../../NetworkProvider';
 import { Button } from '../Button';
 import { DataProviderButton } from '../DataProviderButton';
+import { DataProviderNotice } from '../DataProviderNotice';
 import { HtmlView } from '../HtmlView';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
 import { Logo } from '../Logo';
 import { WebViewMap } from '../map/WebViewMap';
 import { Title, TitleContainer, TitleShadow } from '../Title';
-import { TMBNotice } from '../TMB/Notice';
 import { Wrapper, WrapperWithOrientation } from '../Wrapper';
+
 import { OpeningTimesCard } from './OpeningTimesCard';
 import { OperatingCompany } from './OperatingCompany';
 import { PriceCard } from './PriceCard';
@@ -25,7 +26,7 @@ const { MATOMO_TRACKING } = consts;
 
 /* eslint-disable complexity */
 /* NOTE: we need to check a lot for presence, so this is that complex */
-export const PointOfInterest = ({ data, hideMap, navigation }) => {
+export const PointOfInterest = ({ data, hideMap, navigation, route }) => {
   const { isConnected, isMainserverUp } = useContext(NetworkContext);
   const {
     addresses,
@@ -47,17 +48,8 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
   const latitude = addresses?.[0]?.geoLocation?.latitude;
   const longitude = addresses?.[0]?.geoLocation?.longitude;
 
-  const rootRouteName = navigation.getParam('rootRouteName', '');
   // action to open source urls
-  const openWebScreen = (webUrl) =>
-    navigation.navigate({
-      routeName: 'Web',
-      params: {
-        title: 'Ort',
-        webUrl,
-        rootRouteName
-      }
-    });
+  const openWebScreen = useOpenWebScreen('Ort', undefined, route.params?.rootRouteName);
 
   const logo = dataProvider && dataProvider.logo && dataProvider.logo.url;
   // the categories of a news item can be nested and we need the map of all names of all categories
@@ -73,7 +65,7 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
   );
 
   const businessAccount = dataProvider?.dataType === 'business_account';
-
+  const a11yText = consts.a11yLabel;
   return (
     <View>
       <ImageSection mediaContents={mediaContents} />
@@ -82,7 +74,7 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
         {!!title && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${title} (Überschrift)`}>{title}</Title>
+              <Title accessibilityLabel={`(${title}) ${a11yText.heading}`}>{title}</Title>
             </TitleContainer>
             {device.platform === 'ios' && <TitleShadow />}
           </View>
@@ -91,13 +83,22 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
         <Wrapper>
           {!!logo && <Logo source={{ uri: logo }} />}
 
-          <InfoCard category={category} addresses={addresses} contact={contact} webUrls={webUrls} />
+          <InfoCard
+            category={category}
+            addresses={addresses}
+            contact={contact}
+            openingHours={openingHours}
+            openWebScreen={openWebScreen}
+            webUrls={webUrls}
+          />
         </Wrapper>
 
         {!!openingHours && !!openingHours.length && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.pointOfInterest.openingTime} (Überschrift)`}>
+              <Title
+                accessibilityLabel={`(${texts.pointOfInterest.openingTime}) ${a11yText.heading}`}
+              >
                 {texts.pointOfInterest.openingTime}
               </Title>
             </TitleContainer>
@@ -109,7 +110,7 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
         {!!priceInformations && !!priceInformations.length && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.pointOfInterest.prices} (Überschrift)`}>
+              <Title accessibilityLabel={`(${texts.pointOfInterest.prices}) ${a11yText.heading}`}>
                 {texts.pointOfInterest.prices}
               </Title>
             </TitleContainer>
@@ -121,7 +122,9 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
         {!!description && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.pointOfInterest.description} (Überschrift)`}>
+              <Title
+                accessibilityLabel={`(${texts.pointOfInterest.description}) ${a11yText.heading}`}
+              >
                 {texts.pointOfInterest.description}
               </Title>
             </TitleContainer>
@@ -155,7 +158,7 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
         {!hideMap && !!latitude && !!longitude && isConnected && isMainserverUp && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.pointOfInterest.location} (Überschrift)`}>
+              <Title accessibilityLabel={`(${texts.pointOfInterest.location}) ${a11yText.heading}`}>
                 {texts.pointOfInterest.location}
               </Title>
             </TitleContainer>
@@ -179,11 +182,9 @@ export const PointOfInterest = ({ data, hideMap, navigation }) => {
           title={texts.pointOfInterest.operatingCompany}
         />
 
-        <TMBNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
+        <DataProviderNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
 
-        {!!businessAccount && (
-          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
-        )}
+        {!!businessAccount && <DataProviderButton dataProvider={dataProvider} />}
       </WrapperWithOrientation>
     </View>
   );
@@ -194,5 +195,5 @@ PointOfInterest.propTypes = {
   data: PropTypes.object.isRequired,
   hideMap: PropTypes.bool,
   navigation: PropTypes.object,
-  fetchPolicy: PropTypes.string
+  route: PropTypes.object.isRequired
 };

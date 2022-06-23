@@ -1,14 +1,9 @@
 import _filter from 'lodash/filter';
 
-const removeCommunicationsNesting = (key, communications) => {
-  let result = _filter(communications, (communication) => {
-    // fix for multi nested result form Directus API
-    if (communication.communication) communication = communication.communication;
+const getCommunicationsOfType = (type, communications) => {
+  let result = _filter(communications, (communication) => communication.type.key === type)[0];
 
-    return communication.type.key === key;
-  })[0];
-  // fix for multi nested result form Directus API
-  if (result && result.communication) result = result.communication;
+  return result;
 };
 
 export const getAddress = (addresses) => {
@@ -16,24 +11,24 @@ export const getAddress = (addresses) => {
 
   let address = addresses[0];
 
-  if (address.address) address = address.address;
-
-  const { street, houseNumber, zipcode, city } = address;
+  const { street, houseNumber, zipcode, area } = address;
 
   return {
     street: (!!street || !!houseNumber) && `${address.street} ${address.houseNumber}`,
     zip: zipcode,
-    city: city
+    city: area?.name,
+    elevator: address.elevator,
+    wheelchairAccessible: address.wheelchairAccessible
   };
 };
 
 export const getContact = (communications) => {
   if (!communications?.length) return;
 
-  const phone = removeCommunicationsNesting('TELEFON', communications);
-  const fax = removeCommunicationsNesting('FAX', communications);
-  const email = removeCommunicationsNesting('EMAIL', communications);
-  const www = removeCommunicationsNesting('WWW', communications);
+  const phone = getCommunicationsOfType('TELEFON', communications);
+  const fax = getCommunicationsOfType('FAX', communications);
+  const email = getCommunicationsOfType('EMAIL', communications);
+  const www = getCommunicationsOfType('WWW', communications);
 
   return {
     phone: phone?.value,

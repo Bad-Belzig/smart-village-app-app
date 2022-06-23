@@ -1,3 +1,5 @@
+export * from './consul';
+
 export * from './About';
 export * from './EventRecord';
 export * from './LunchSection';
@@ -7,4 +9,5 @@ export * from './OperatingCompany';
 export * from './PointOfInterest';
 export * from './PriceCard';
 export * from './Service';
+export * from './ServiceTiles';
 export * from './Tour';

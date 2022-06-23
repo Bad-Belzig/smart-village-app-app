@@ -2,13 +2,14 @@ import * as SecureStore from 'expo-secure-store';
 
 import { device, secrets, staticRestSuffix } from '../config';
 import * as appJson from '../../app.json';
+
 import { getPushTokenFromStorage, PushNotificationStorageKeys } from './TokenHandling';
 
 const namespace = appJson.expo.slug as keyof typeof secrets;
 
 type SettingInfo = {
   city: string;
-  reminderTime: string;
+  reminderTime: Date;
   onDayBefore: boolean;
   street: string;
   wasteType: string;
@@ -29,7 +30,7 @@ export const updateReminderSettings = async ({
   const os =
     device.platform === 'ios' || device.platform === 'android' ? device.platform : 'undefined';
 
-  const fetchObj = {
+  const fetchObj: RequestInit = {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -38,7 +39,7 @@ export const updateReminderSettings = async ({
     },
     body: JSON.stringify({
       waste_registration: {
-        notify_at: reminderTime,
+        notify_at: `${reminderTime.getHours()}:${reminderTime.getMinutes()}+01:00`,
         notify_for_waste_type: wasteType,
         street,
         city,
@@ -71,7 +72,7 @@ export const getReminderSettings = async () => {
   const requestPath =
     secrets[namespace].serverUrl + staticRestSuffix.wasteReminderRegister + `?token=${pushToken}`;
 
-  const fetchObj = {
+  const fetchObj: RequestInit = {
     headers: {
       Authorization: 'Bearer ' + accessToken,
       'Content-Type': 'application/json'
@@ -102,7 +103,7 @@ export const deleteReminderSetting = async (id: number) => {
     staticRestSuffix.wasteReminderDelete +
     `${id}.json?token=${pushToken}`;
 
-  const fetchObj = {
+  const fetchObj: RequestInit = {
     method: 'DELETE',
     headers: {
       Authorization: 'Bearer ' + accessToken,

@@ -1,12 +1,14 @@
+import { RouteProp } from '@react-navigation/core';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { LocationObject } from 'expo-location';
 import React, { useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-apollo';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { MapMarker, WebviewLeafletMessage } from 'react-native-webview-leaflet';
-import { NavigationScreenProps, ScrollView } from 'react-navigation';
 
 import { colors, texts } from '../../config';
-import { graphqlFetchPolicy } from '../../helpers';
-import { location, locationIconAnchor } from '../../icons';
+import { graphqlFetchPolicy, isOpen } from '../../helpers';
+import { location, locationIconAnchor, ownLocation, ownLocationIconAnchor } from '../../icons';
 import { NetworkContext } from '../../NetworkProvider';
 import { getQuery, QUERY_TYPES } from '../../queries';
 import { LoadingContainer } from '../LoadingContainer';
@@ -14,20 +16,27 @@ import { SafeAreaViewFlex } from '../SafeAreaViewFlex';
 import { PointOfInterest } from '../screens/PointOfInterest';
 import { RegularText } from '../Text';
 import { Wrapper, WrapperWithOrientation } from '../Wrapper';
+
 import { WebViewMap } from './WebViewMap';
 
 type Props = {
-  category: string;
-  dataProviderName?: string;
-  navigation: NavigationScreenProps;
+  filterByOpeningTimes?: boolean;
+  position?: LocationObject;
+  navigation: StackNavigationProp<never>;
+  queryVariables: {
+    category?: string;
+    categoryId?: string | number;
+    dataProvider?: string;
+  };
+  route: RouteProp<any, never>;
 };
 
 // FIXME: with our current setup the data that we receive from a query is not typed
 // if we change that then we can fix this place
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapToMapMarkers = (data: any): MapMarker[] | undefined => {
+const mapToMapMarkers = (pointsOfInterest: any): MapMarker[] | undefined => {
   return (
-    data?.[QUERY_TYPES.POINTS_OF_INTEREST]
+    pointsOfInterest
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ?.map((item: any) => {
         const latitude = item.addresses?.[0]?.geoLocation?.latitude;
@@ -49,7 +58,13 @@ const mapToMapMarkers = (data: any): MapMarker[] | undefined => {
   );
 };
 
-export const LocationOverview = ({ navigation, category, dataProviderName }: Props) => {
+export const LocationOverview = ({
+  filterByOpeningTimes,
+  navigation,
+  position,
+  queryVariables,
+  route
+}: Props) => {
   const { isConnected, isMainserverUp } = useContext(NetworkContext);
   const [selectedPointOfInterest, setSelectedPointOfInterest] = useState<string>();
 
@@ -58,8 +73,14 @@ export const LocationOverview = ({ navigation, category, dataProviderName }: Pro
   const overviewQuery = getQuery(QUERY_TYPES.POINTS_OF_INTEREST);
   const { data: overviewData, loading } = useQuery(overviewQuery, {
     fetchPolicy,
-    variables: { category, dataProvider: dataProviderName }
+    variables: queryVariables
   });
+
+  let pointsOfInterest: any[] | undefined = overviewData?.[QUERY_TYPES.POINTS_OF_INTEREST];
+
+  if (filterByOpeningTimes && pointsOfInterest) {
+    pointsOfInterest = pointsOfInterest.filter((entry) => isOpen(entry.openingHours)?.open);
+  }
 
   const detailsQuery = getQuery(QUERY_TYPES.POINT_OF_INTEREST);
   const { data: detailsData, loading: detailsLoading } = useQuery(detailsQuery, {
@@ -85,7 +106,17 @@ export const LocationOverview = ({ navigation, category, dataProviderName }: Pro
     );
   }
 
-  const mapMarkers = mapToMapMarkers(overviewData);
+  const mapMarkers = mapToMapMarkers(pointsOfInterest);
+
+  position &&
+    mapMarkers?.push({
+      icon: ownLocation(colors.accent),
+      iconAnchor: ownLocationIconAnchor,
+      position: {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      }
+    });
 
   if (!mapMarkers?.length) {
     return (
@@ -116,6 +147,7 @@ export const LocationOverview = ({ navigation, category, dataProviderName }: Pro
                   data={detailsData[QUERY_TYPES.POINT_OF_INTEREST]}
                   navigation={navigation}
                   hideMap
+                  route={route}
                 />
               )
             )}

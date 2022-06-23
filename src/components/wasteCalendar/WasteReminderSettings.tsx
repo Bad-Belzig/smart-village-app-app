@@ -23,16 +23,18 @@ import { BoldText, RegularText } from '../Text';
 import { Touchable } from '../Touchable';
 import { Radiobutton } from '../Radiobutton';
 import { Wrapper, WrapperHorizontal, WrapperRow } from '../Wrapper';
-import { colors, device, texts } from '../../config';
+import { colors, consts, device, texts } from '../../config';
 import { ReminderSettings, WasteTypeData } from '../../types';
+import { Button } from '../Button';
+import { areValidReminderSettings, parseReminderSettings } from '../../jsonValidation';
+import { SectionHeader } from '../SectionHeader';
+import { FeedbackFooter } from '../FeedbackFooter';
+
 import {
   ReminderSettingsAction,
   ReminderSettingsActionType,
   reminderSettingsReducer
 } from './ReminderSettingsReducer';
-import { Button } from '../Button';
-import { areValidReminderSettings, parseReminderSettings } from '../../jsonValidation';
-import { SectionHeader } from '../SectionHeader';
 
 const showErrorAlert = () => {
   Alert.alert(texts.wasteCalendar.errorOnUpdateTitle, texts.wasteCalendar.errorOnUpdateBody);
@@ -68,12 +70,14 @@ const CategoryEntry = ({
   active,
   categoryKey,
   categoryName,
-  dispatch
+  dispatch,
+  bottomDivider
 }: {
   categoryKey: string;
   categoryName: string;
   active: boolean;
   dispatch: React.Dispatch<ReminderSettingsAction>;
+  bottomDivider: boolean;
 }) => {
   const [switchValue, setSwitchValue] = useState(active);
 
@@ -99,16 +103,18 @@ const CategoryEntry = ({
   return (
     <ListItem
       title={<RegularText>{categoryName}</RegularText>}
-      bottomDivider
+      bottomDivider={bottomDivider}
+      containerStyle={styles.switchContainer}
       rightIcon={<Switch switchValue={switchValue ?? false} toggleSwitch={toggleSwitch} />}
       onPress={onPress}
       delayPressIn={0}
       Component={Touchable}
-      accessibilityLabel={`${categoryName} (Taste)`}
+      accessibilityLabel={`(${categoryName}) ${consts.a11yLabel.button}`}
     />
   );
 };
 
+// TODO: use the new DateTimePicker component
 export const WasteReminderSettings = ({
   types,
   locationData
@@ -211,7 +217,7 @@ export const WasteReminderSettings = ({
           const id = await updateReminderSettings({
             ...locationData,
             onDayBefore: state.onDayBefore,
-            reminderTime: `${state.reminderTime.getHours()}:${state.reminderTime.getMinutes()}`,
+            reminderTime,
             wasteType: typeKey
           });
 
@@ -239,7 +245,7 @@ export const WasteReminderSettings = ({
 
   return (
     <ScrollView
-      keyboardShouldPersistTaps="always"
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl
           refreshing={loading}
@@ -260,12 +266,13 @@ export const WasteReminderSettings = ({
             <BoldText>{texts.wasteCalendar.whichType}</BoldText>
             <FlatList
               data={Object.keys(types)}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <CategoryEntry
                   active={state.activeTypes[item]?.active}
                   categoryKey={item}
                   categoryName={types[item].label}
                   dispatch={dispatch}
+                  bottomDivider={index < Object.keys(types).length - 1}
                 />
               )}
               keyExtractor={keyExtractor}
@@ -296,7 +303,6 @@ export const WasteReminderSettings = ({
                   {texts.wasteCalendar.onDayOfCollection}
                 </RegularText>
               }
-              bottomDivider
               rightIcon={
                 <Radiobutton
                   onPress={onPressDayOfCollection}
@@ -342,6 +348,7 @@ export const WasteReminderSettings = ({
                           mode="time"
                           onChange={onDatePickerChange}
                           value={localSelectedTime || new Date()}
+                          textColor={colors.darkText}
                         />
                       </SafeAreaView>
                     </View>
@@ -361,11 +368,16 @@ export const WasteReminderSettings = ({
           </Wrapper>
         </>
       )}
+      <FeedbackFooter />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  switchContainer: {
+    backgroundColor: colors.transparent,
+    paddingVertical: device.platform === 'ios' ? normalize(12) : normalize(3.85)
+  },
   dateTimePickerContainerIOS: {
     backgroundColor: colors.surface
   },
@@ -378,6 +390,7 @@ const styles = StyleSheet.create({
     paddingTop: normalize(14)
   },
   radioContainer: {
-    backgroundColor: colors.transparent
+    backgroundColor: colors.transparent,
+    paddingVertical: device.platform === 'ios' ? normalize(3.125) : normalize(0)
   }
 });

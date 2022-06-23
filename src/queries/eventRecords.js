@@ -210,6 +210,11 @@ export const GET_EVENT_RECORD = gql`
         zip
         kind
         addition
+        geoLocation {
+          id
+          latitude
+          longitude
+        }
       }
       contacts {
         id
@@ -237,6 +242,7 @@ export const GET_EVENT_RECORD = gql`
         }
         name
         dataType
+        notice
       }
       priceInformations {
         id
@@ -276,6 +282,32 @@ export const GET_EVENT_RECORD = gql`
           }
         }
       }
+    }
+  }
+`;
+
+export const CREATE_EVENT_RECORDS = gql`
+  mutation CreateEventRecord(
+    $title: String!
+    $categoryName: String
+    $description: String
+    $dateStart: String
+    $dateEnd: String
+    $timeStart: String
+    $timeEnd: String
+    $city: String
+  ) {
+    createEventRecord(
+      title: $title
+      categoryName: $categoryName
+      description: $description
+      dates: [
+        { dateStart: $dateStart, dateEnd: $dateEnd, timeStart: $timeStart, timeEnd: $timeEnd }
+      ]
+      addresses: [{ city: $city, kind: "default" }]
+    ) {
+      id
+      title
     }
   }
 `;

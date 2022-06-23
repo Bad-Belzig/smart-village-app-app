@@ -4,36 +4,13 @@ import React, { useContext } from 'react';
 import { consts } from '../config';
 import { QUERY_TYPES } from '../queries';
 import { SettingsContext } from '../SettingsProvider';
-import { CardList } from './CardList';
+
 import { CategoryList } from './CategoryList';
-import { ImageTextList } from './ImageTextList';
-import { TextList } from './TextList';
+import { EventList } from './EventList';
+import { HorizontalList } from './HorizontalList';
+import { VerticalList } from './VerticalList';
 
 const { LIST_TYPES } = consts;
-
-const getListComponent = (listType) =>
-  ({
-    [LIST_TYPES.TEXT_LIST]: TextList,
-    [LIST_TYPES.IMAGE_TEXT_LIST]: ImageTextList,
-    [LIST_TYPES.CARD_LIST]: CardList
-  }[listType]);
-
-const getComponent = (query, listTypesSettings) =>
-  ({
-    [QUERY_TYPES.NEWS_ITEMS]: getListComponent(listTypesSettings[QUERY_TYPES.NEWS_ITEMS]),
-    [QUERY_TYPES.EVENT_RECORDS]: getListComponent(listTypesSettings[QUERY_TYPES.EVENT_RECORDS]),
-    [QUERY_TYPES.POINTS_OF_INTEREST]: getListComponent(
-      listTypesSettings[QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS]
-    ),
-    [QUERY_TYPES.TOURS]: getListComponent(
-      listTypesSettings[QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS]
-    ),
-    [QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS]: getListComponent(
-      listTypesSettings[QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS]
-    ),
-    [QUERY_TYPES.GENERIC_ITEMS]: TextList,
-    [QUERY_TYPES.CATEGORIES]: CategoryList
-  }[query]);
 
 const isHorizontal = (query, listTypesSettings) => {
   switch (query) {
@@ -45,43 +22,76 @@ const isHorizontal = (query, listTypesSettings) => {
   }
 };
 
+// eslint-disable-next-line complexity
+const getComponent = (query, horizontal, sectionByDate) => {
+  switch (query) {
+    case QUERY_TYPES.CATEGORIES:
+      return CategoryList;
+    case QUERY_TYPES.POINTS_OF_INTEREST:
+    case QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS:
+    case QUERY_TYPES.TOURS:
+      return horizontal ? HorizontalList : VerticalList;
+    case QUERY_TYPES.EVENT_RECORDS:
+      return sectionByDate ? EventList : VerticalList;
+    case QUERY_TYPES.VOLUNTEER.CALENDAR_ALL:
+    case QUERY_TYPES.VOLUNTEER.CALENDAR_ALL_MY:
+      return sectionByDate ? EventList : VerticalList;
+    default:
+      return VerticalList;
+  }
+};
+
 // the ListComponent will default to being horizontal for CardLists,
 // which can be overwritten by passing in the horizontal prop
 export const ListComponent = ({
-  navigation,
   data,
-  noSubtitle,
-  query,
   fetchMoreData,
   horizontal,
+  ListEmptyComponent,
   ListHeaderComponent,
-  refreshControl
+  navigation,
+  noSubtitle,
+  openWebScreen,
+  query,
+  refreshControl,
+  sectionByDate,
+  showBackToTop
 }) => {
   const { listTypesSettings } = useContext(SettingsContext);
 
-  const Component = getComponent(query, listTypesSettings);
+  const Component = getComponent(
+    query,
+    horizontal ?? isHorizontal(query, listTypesSettings),
+    sectionByDate
+  );
 
   return (
     <Component
       data={data}
       fetchMoreData={fetchMoreData}
-      horizontal={horizontal ?? isHorizontal(query, listTypesSettings)}
+      ListEmptyComponent={ListEmptyComponent}
       ListHeaderComponent={ListHeaderComponent}
       navigation={navigation}
       noSubtitle={noSubtitle}
+      openWebScreen={openWebScreen}
       query={query}
       refreshControl={refreshControl}
+      showBackToTop={showBackToTop}
     />
   );
 };
 
 ListComponent.propTypes = {
-  navigation: PropTypes.object,
   data: PropTypes.array,
-  noSubtitle: PropTypes.bool,
-  query: PropTypes.string.isRequired,
   fetchMoreData: PropTypes.func,
   horizontal: PropTypes.bool,
+  ListEmptyComponent: PropTypes.object,
   ListHeaderComponent: PropTypes.object,
-  refreshControl: PropTypes.object
+  navigation: PropTypes.object,
+  noSubtitle: PropTypes.bool,
+  openWebScreen: PropTypes.func,
+  query: PropTypes.string.isRequired,
+  refreshControl: PropTypes.object,
+  sectionByDate: PropTypes.bool,
+  showBackToTop: PropTypes.bool
 };

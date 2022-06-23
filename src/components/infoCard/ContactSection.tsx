@@ -2,15 +2,15 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon as RNEIcon } from 'react-native-elements';
 
-import { colors, normalize } from '../../config';
+import { colors, consts, Icon, normalize } from '../../config';
 import { openLink } from '../../helpers';
-import { mail, phone as phoneIcon } from '../../icons';
 import { Contact } from '../../types';
-import { Icon } from '../Icon';
 import { RegularText } from '../Text';
 import { InfoBox } from '../Wrapper';
 
 const ContactView = ({ contact }: { contact?: Contact }) => {
+  const a11yText = consts.a11yLabel;
+
   if (!contact) {
     return null;
   }
@@ -27,11 +27,12 @@ const ContactView = ({ contact }: { contact?: Contact }) => {
 
       {!!contact.phone && (
         <InfoBox>
-          <Icon xml={phoneIcon(colors.primary)} style={styles.margin} />
+          <Icon.Phone style={styles.margin} />
           <TouchableOpacity onPress={() => openLink(`tel:${contact.phone}`)}>
             <RegularText
               primary
-              accessibilityLabel={`(Telefonnummer) ${contact.phone} (Taste) (Wechselt zur Telefon-App)`}
+              accessibilityLabel={`${consts.a11yLabel.phoneNumber} (${contact.phone})
+            ${consts.a11yLabel.button} ${consts.a11yLabel.phoneAppHint}`}
             >
               {contact.phone}
             </RegularText>
@@ -41,11 +42,13 @@ const ContactView = ({ contact }: { contact?: Contact }) => {
 
       {!!contact.email && (
         <InfoBox>
-          <Icon xml={mail(colors.primary)} style={styles.margin} />
+          <Icon.Mail style={styles.margin} />
           <TouchableOpacity onPress={() => openLink(`mailto:${contact.email}`)}>
             <RegularText
               primary
-              accessibilityLabel={`(E-Mail) ${contact.email} (Taste) (Wechselt zur E-Mail-App)`}
+              accessibilityLabel={`
+                ${a11yText.mail} (${contact.email}) ${a11yText.button} ${a11yText.mailHint}
+              `}
             >
               {contact.email}
             </RegularText>
@@ -56,7 +59,7 @@ const ContactView = ({ contact }: { contact?: Contact }) => {
       {!!contact.fax && (
         <InfoBox>
           <RNEIcon name="print" type="material" color={colors.primary} iconStyle={styles.margin} />
-          <RegularText primary accessibilityLabel={`(Fax) ${contact.fax}`}>
+          <RegularText primary accessibilityLabel={`(${a11yText.fax} ${contact.fax}`}>
             {contact.fax}
           </RegularText>
         </InfoBox>
@@ -85,6 +88,6 @@ export const ContactSection = ({
 
 const styles = StyleSheet.create({
   margin: {
-    marginRight: normalize(10)
+    marginRight: normalize(12)
   }
 });

@@ -3,7 +3,8 @@ import React from 'react';
 import { SectionList, View } from 'react-native';
 import _filter from 'lodash/filter';
 
-import { device, texts } from '../config';
+import { device, consts, texts } from '../config';
+
 import { RegularText } from './Text';
 import { Title, TitleContainer, TitleShadow } from './Title';
 import { Wrapper } from './Wrapper';
@@ -13,12 +14,14 @@ export class CategoryList extends React.PureComponent {
   keyExtractor = (item, index) => `index${index}-id${item.id}`;
 
   renderSectionHeader = ({ section: { title, data } }) => {
-    if (!data?.length) return null;
+    const { hasSectionHeader } = this.props;
+
+    if (!data?.length || !hasSectionHeader) return null;
 
     return (
       <View>
         <TitleContainer>
-          <Title accessibilityLabel={`${title} (Überschrift)`}>{title}</Title>
+          <Title accessibilityLabel={`${title} ${consts.a11yLabel.heading}`}>{title}</Title>
         </TitleContainer>
         {device.platform === 'ios' && <TitleShadow />}
       </View>
@@ -26,16 +29,22 @@ export class CategoryList extends React.PureComponent {
   };
 
   render() {
-    const { data, navigation, noSubtitle, refreshControl } = this.props;
+    const { data, navigation, noSubtitle, refreshControl, hasSectionHeader } = this.props;
+
+    // Sorting data alphabetically
+    data.sort((a, b) => a.title.localeCompare(b.title));
 
     const sectionedData = [
       {
         title: texts.categoryTitles.pointsOfInterest,
-        data: _filter(data, (category) => category.pointsOfInterestCount > 0)
+        data: _filter(
+          data,
+          (category) => category.pointsOfInterestTreeCount > 0 && !category.parent
+        )
       },
       {
         title: texts.categoryTitles.tours,
-        data: _filter(data, (category) => category.toursCount > 0)
+        data: _filter(data, (category) => category.toursTreeCount > 0 && !category.parent)
       }
     ];
 
@@ -43,7 +52,7 @@ export class CategoryList extends React.PureComponent {
       <SectionList
         keyExtractor={this.keyExtractor}
         sections={sectionedData}
-        initialNumToRender={data.length}
+        initialNumToRender={data.length > 1 ? data.length : 2}
         renderItem={({ item, index, section }) => (
           <CategoryListItem
             navigation={navigation}
@@ -55,6 +64,7 @@ export class CategoryList extends React.PureComponent {
         )}
         renderSectionHeader={this.renderSectionHeader}
         ListHeaderComponent={
+          hasSectionHeader &&
           !!texts.categoryList.intro && (
             <Wrapper>
               <RegularText>{texts.categoryList.intro}</RegularText>
@@ -72,9 +82,11 @@ CategoryList.propTypes = {
   navigation: PropTypes.object.isRequired,
   data: PropTypes.array.isRequired,
   noSubtitle: PropTypes.bool,
-  refreshControl: PropTypes.object
+  refreshControl: PropTypes.object,
+  hasSectionHeader: PropTypes.bool
 };
 
 CategoryList.defaultProps = {
-  noSubtitle: false
+  noSubtitle: false,
+  hasSectionHeader: true
 };

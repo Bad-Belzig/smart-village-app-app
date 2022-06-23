@@ -11,15 +11,16 @@ import { Logo } from '../Logo';
 import { Title, TitleContainer, TitleShadow } from '../Title';
 import { Touchable } from '../Touchable';
 import { Wrapper, WrapperHorizontal, WrapperWithOrientation } from '../Wrapper';
-import { PriceCard } from './PriceCard';
-import { OpeningTimesCard } from './OpeningTimesCard';
 import { matomoTrackingString, trimNewLines } from '../../helpers';
-import { useMatomoTrackScreenView } from '../../hooks';
-import { TMBNotice } from '../TMB/Notice';
+import { useMatomoTrackScreenView, useOpenWebScreen } from '../../hooks';
+import { DataProviderNotice } from '../DataProviderNotice';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
-import { OperatingCompany } from './OperatingCompany';
 import { DataProviderButton } from '../DataProviderButton';
+
+import { OperatingCompany } from './OperatingCompany';
+import { OpeningTimesCard } from './OpeningTimesCard';
+import { PriceCard } from './PriceCard';
 
 // necessary hacky way of implementing iframe in webview with correct zoom level
 // thx to: https://stackoverflow.com/a/55780430
@@ -35,7 +36,7 @@ const { MATOMO_TRACKING } = consts;
 
 /* eslint-disable complexity */
 /* NOTE: we need to check a lot for presence, so this is that complex */
-export const EventRecord = ({ data, navigation }) => {
+export const EventRecord = ({ data, route }) => {
   const {
     addresses,
     category,
@@ -51,18 +52,12 @@ export const EventRecord = ({ data, navigation }) => {
     webUrls
   } = data;
   const link = webUrls && webUrls.length && webUrls[0].url;
-  const rootRouteName = navigation.getParam('rootRouteName', '');
-  const headerTitle = navigation.getParam('title', '');
+  const rootRouteName = route.params?.rootRouteName ?? '';
+  const headerTitle = route.params?.title ?? '';
+
   // action to open source urls
-  const openWebScreen = (webUrl) =>
-    navigation.navigate({
-      routeName: 'Web',
-      params: {
-        title: headerTitle,
-        webUrl: !!webUrl && typeof webUrl === 'string' ? webUrl : link,
-        rootRouteName
-      }
-    });
+  const openWebScreen = useOpenWebScreen(headerTitle, link, rootRouteName);
+
   // the categories of a news item can be nested and we need the map of all names of all categories
   const categoryNames = categories && categories.map((category) => category.name).join(' / ');
 
@@ -106,7 +101,7 @@ export const EventRecord = ({ data, navigation }) => {
     });
 
   const businessAccount = dataProvider?.dataType === 'business_account';
-
+  const a11yText = consts.a11yLabel;
   return (
     <View>
       <ImageSection mediaContents={mediaContents} />
@@ -115,13 +110,15 @@ export const EventRecord = ({ data, navigation }) => {
         {!!title && !!link ? (
           <TitleContainer>
             <Touchable onPress={openWebScreen}>
-              <Title accessibilityLabel={`${title} (Überschrift) (Taste)`}>{title}</Title>
+              <Title accessibilityLabel={`(${title}) ${a11yText.heading} ${a11yText.button}`}>
+                {title}
+              </Title>
             </Touchable>
           </TitleContainer>
         ) : (
           !!title && (
             <TitleContainer>
-              <Title accessibilityLabel={`${title} (Überschrift)`}>{title}</Title>
+              <Title accessibilityLabel={`(${title}) ${a11yText.heading}`}>{title}</Title>
             </TitleContainer>
           )
         )}
@@ -141,7 +138,7 @@ export const EventRecord = ({ data, navigation }) => {
         {!!dates && !!dates.length && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.eventRecord.appointments} (Überschrift) `}>
+              <Title accessibilityLabel={`(${texts.eventRecord.appointments}) ${a11yText.heading}`}>
                 {texts.eventRecord.appointments}
               </Title>
             </TitleContainer>
@@ -154,7 +151,7 @@ export const EventRecord = ({ data, navigation }) => {
         {!!priceInformations && !!priceInformations.length && !!priceInformations[0].description && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.eventRecord.prices} (Überschrift)`}>
+              <Title accessibilityLabel={`(${texts.eventRecord.prices}) ${a11yText.heading}`}>
                 {texts.eventRecord.prices}
               </Title>
             </TitleContainer>
@@ -166,7 +163,7 @@ export const EventRecord = ({ data, navigation }) => {
         {!!description && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.eventRecord.description} (Überschrift)`}>
+              <Title accessibilityLabel={`(${texts.eventRecord.description}) ${a11yText.heading}`}>
                 {texts.eventRecord.description}
               </Title>
             </TitleContainer>
@@ -185,11 +182,9 @@ export const EventRecord = ({ data, navigation }) => {
           title={texts.eventRecord.operatingCompany}
         />
 
-        <TMBNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
+        <DataProviderNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
 
-        {!!businessAccount && (
-          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
-        )}
+        {!!businessAccount && <DataProviderButton dataProvider={dataProvider} />}
       </WrapperWithOrientation>
     </View>
   );
@@ -205,5 +200,6 @@ const styles = StyleSheet.create({
 
 EventRecord.propTypes = {
   data: PropTypes.object.isRequired,
-  navigation: PropTypes.object
+  navigation: PropTypes.object,
+  route: PropTypes.object.isRequired
 };

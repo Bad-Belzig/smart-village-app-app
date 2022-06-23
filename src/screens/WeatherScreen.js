@@ -4,7 +4,6 @@ import { ActivityIndicator, FlatList, RefreshControl, ScrollView, View } from 'r
 
 import {
   DailyWeather,
-  HeaderLeft,
   HourlyWeather,
   LoadingContainer,
   RegularText,
@@ -99,7 +98,9 @@ export const WeatherScreen = () => {
       <ScrollView refreshControl={refreshControl}>
         {!!alerts?.length && (
           <WrapperWithOrientation>
-            <TitleContainer accessibilityLabel={`${texts.weather.alertsHeadline} (Überschrift)`}>
+            <TitleContainer
+              accessibilityLabel={`(${texts.weather.alertsHeadline}) ${consts.a11yLabel.heading}`}
+            >
               <Title>{texts.weather.alertsHeadline}</Title>
             </TitleContainer>
             {device.platform === 'ios' && <TitleShadow />}
@@ -117,7 +118,9 @@ export const WeatherScreen = () => {
         {hasHourlyWeather(weatherMap) && (
           <View>
             <WrapperWithOrientation>
-              <TitleContainer accessibilityLabel={`${texts.weather.currentHeadline} (Überschrift)`}>
+              <TitleContainer
+                accessibilityLabel={`(${texts.weather.currentHeadline}) ${consts.a11yLabel.heading}`}
+              >
                 <Title>{texts.weather.currentHeadline}</Title>
               </TitleContainer>
               {device.platform === 'ios' && <TitleShadow />}
@@ -132,7 +135,9 @@ export const WeatherScreen = () => {
         )}
         {hasDailyWeather(weatherMap) && (
           <WrapperWithOrientation>
-            <TitleContainer accessibilityLabel={`${texts.weather.nextDaysHeadline} (Überschrift)`}>
+            <TitleContainer
+              accessibilityLabel={`(${texts.weather.nextDaysHeadline}) ${consts.a11yLabel.heading}`}
+            >
               <Title>{texts.weather.nextDaysHeadline}</Title>
             </TitleContainer>
             {device.platform === 'ios' && <TitleShadow />}
@@ -149,10 +154,4 @@ export const WeatherScreen = () => {
       </ScrollView>
     </SafeAreaViewFlex>
   );
-};
-
-WeatherScreen.navigationOptions = ({ navigation }) => {
-  return {
-    headerLeft: <HeaderLeft navigation={navigation} />
-  };
 };

@@ -1,22 +1,22 @@
 import React from 'react';
-import { NavigationScreenProp } from 'react-navigation';
+
+import { WidgetProps } from '../../types';
+import { WrapperRow } from '../Wrapper';
 
 import { ConstructionSiteWidget } from './ConstructionSiteWidget';
 import { EventWidget } from './EventWidget';
-import { WeatherWidget } from './WeatherWidget';
-import { WrapperRow } from '../Wrapper';
 import { LunchWidget } from './LunchWidget';
-import { WidgetProps } from '../../types';
+import { ConstructionSiteNewsWidget } from './ConstructionSiteNewsWidget';
+import { SurveyWidget } from './SurveyWidget';
+import { WeatherWidget } from './WeatherWidget';
 
 type WidgetConfig =
-  | {
+  | ({
       widgetName: string;
-      text?: string;
-    }
+    } & WidgetProps)
   | string;
 
 type Props = {
-  navigation: NavigationScreenProp<never>;
   widgetConfigs?: WidgetConfig[];
 };
 
@@ -24,25 +24,27 @@ const EXISTING_WIDGETS: {
   [key: string]: React.FC<WidgetProps> | undefined;
 } = {
   constructionSite: ConstructionSiteWidget,
+  constructionSiteNews: ConstructionSiteNewsWidget,
   event: EventWidget,
   lunch: LunchWidget,
+  survey: SurveyWidget,
   weather: WeatherWidget
 };
 
-export const Widgets = ({ navigation, widgetConfigs }: Props) => {
+export const Widgets = ({ widgetConfigs }: Props) => {
   if (!widgetConfigs) return null;
 
   const widgetComponents = widgetConfigs.map((widgetConfig, index) => {
     const widgetName = typeof widgetConfig === 'string' ? widgetConfig : widgetConfig.widgetName;
     const widgetText = typeof widgetConfig === 'string' ? undefined : widgetConfig.text;
+    const additionalProps =
+      typeof widgetConfig === 'string' ? undefined : widgetConfig.additionalProps;
 
     const Component = EXISTING_WIDGETS[widgetName];
 
-    if (!Component) {
-      return null;
-    }
+    if (!Component) return null;
 
-    return <Component key={index} navigation={navigation} text={widgetText} />;
+    return <Component key={index} additionalProps={additionalProps} text={widgetText} />;
   });
 
   const filteredWidgetComponents = widgetComponents.filter((component) => !!component);

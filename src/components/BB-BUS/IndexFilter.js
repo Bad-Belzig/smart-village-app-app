@@ -5,12 +5,13 @@ import { Divider } from 'react-native-elements';
 
 import { colors, normalize, texts } from '../../config';
 import { RegularText } from '../Text';
-import { IndexFilterWrapper } from './IndexFilterElement';
-import { AZFilter } from './AZFilter';
 import { Wrapper, WrapperHorizontal, WrapperVertical } from '../Wrapper';
 import { DropdownSelect } from '../DropdownSelect';
-import { TextSearch } from './TextSearch';
 import { search } from '../../helpers';
+import { IndexFilterWrapper } from '../IndexFilterElement';
+
+import { AZFilter } from './AZFilter';
+import { TextSearch } from './TextSearch';
 
 /* category filter initial data */
 const initialCategoryFilterData = [
@@ -41,12 +42,12 @@ export const IndexFilter = ({
   setListItems,
   areaId,
   setAreaId,
-  communities,
+  areas,
   loading
 }) => {
   const [serviceSearchData, setServiceSearchData] = useState('');
   const [categoryFilterData, setCategoryFilterData] = useState(initialCategoryFilterData);
-  const [locationFilterData, setLocationFilterData] = useState(communities);
+  const [locationFilterData, setLocationFilterData] = useState(areas);
   const [AZFilterData, setAZFilterData] = useState(initialAZFilterData);
   const listItemsCount = listItems.length;
 
@@ -149,7 +150,7 @@ export const IndexFilter = ({
         setListItems([]);
       }
     }
-  }, [selectedFilter, categoryFilterData]);
+  }, [areaId, selectedFilter, categoryFilterData]);
 
   useEffect(() => {
     if (!loading && selectedFilter.id === 3) {
@@ -162,7 +163,7 @@ export const IndexFilter = ({
 
       setListItems(searchResults);
     }
-  }, [selectedFilter, serviceSearchData]);
+  }, [areaId, selectedFilter, serviceSearchData]);
 
   useEffect(() => {
     if (!loading && selectedFilter.id === 4) {
@@ -181,7 +182,7 @@ export const IndexFilter = ({
         setListItems([]);
       }
     }
-  }, [selectedFilter, AZFilterData]);
+  }, [areaId, selectedFilter, AZFilterData]);
 
   return (
     <View>
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderBottomWidth: StyleSheet.hairlineWidth,
     color: colors.darkText,
-    fontFamily: 'titillium-web-regular',
+    fontFamily: 'regular',
     fontSize: normalize(16),
     justifyContent: 'space-between',
     lineHeight: normalize(22),
@@ -228,9 +229,9 @@ IndexFilter.propTypes = {
   results: PropTypes.array.isRequired,
   listItems: PropTypes.array.isRequired,
   setListItems: PropTypes.func.isRequired,
-  areaId: PropTypes.number.isRequired,
+  areaId: PropTypes.string.isRequired,
   setAreaId: PropTypes.func.isRequired,
-  communities: PropTypes.array,
+  areas: PropTypes.array,
   loading: PropTypes.bool.isRequired
 };
 

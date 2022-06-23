@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 
-import { TextList } from '../TextList';
+import { VerticalList } from '../VerticalList';
+
 import { IndexFilter } from './IndexFilter';
 
 export const ServiceList = ({
@@ -10,7 +11,7 @@ export const ServiceList = ({
   results,
   areaId,
   setAreaId,
-  communities,
+  areas,
   top10,
   loading,
   refreshControl
@@ -24,7 +25,7 @@ export const ServiceList = ({
   }, [results.length, selectedFilter]);
 
   return (
-    <TextList
+    <VerticalList
       navigation={navigation}
       data={listItems}
       noSubtitle
@@ -36,7 +37,7 @@ export const ServiceList = ({
           setListItems={setListItems}
           areaId={areaId}
           setAreaId={setAreaId}
-          communities={communities}
+          areas={areas}
           loading={loading}
         />
       }
@@ -50,9 +51,9 @@ ServiceList.propTypes = {
   navigation: PropTypes.object.isRequired,
   selectedFilter: PropTypes.object.isRequired,
   results: PropTypes.array,
-  areaId: PropTypes.number.isRequired,
+  areaId: PropTypes.string.isRequired,
   setAreaId: PropTypes.func.isRequired,
-  communities: PropTypes.array,
+  areas: PropTypes.array,
   top10: PropTypes.array.isRequired,
   loading: PropTypes.bool.isRequired,
   refreshControl: PropTypes.object

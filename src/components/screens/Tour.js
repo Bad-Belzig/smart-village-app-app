@@ -4,15 +4,16 @@ import { View } from 'react-native';
 
 import { consts, device, texts } from '../../config';
 import { matomoTrackingString } from '../../helpers';
-import { useMatomoTrackScreenView } from '../../hooks';
+import { useMatomoTrackScreenView, useOpenWebScreen } from '../../hooks';
 import { DataProviderButton } from '../DataProviderButton';
 import { HtmlView } from '../HtmlView';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
 import { Logo } from '../Logo';
 import { Title, TitleContainer, TitleShadow } from '../Title';
-import { TMBNotice } from '../TMB/Notice';
+import { DataProviderNotice } from '../DataProviderNotice';
 import { Wrapper, WrapperWithOrientation } from '../Wrapper';
+
 import { OperatingCompany } from './OperatingCompany';
 import { TourCard } from './TourCard';
 
@@ -20,7 +21,7 @@ const { MATOMO_TRACKING } = consts;
 
 /* eslint-disable complexity */
 /* NOTE: we need to check a lot for presence, so this is that complex */
-export const Tour = ({ data, navigation }) => {
+export const Tour = ({ data, route }) => {
   const {
     addresses,
     category,
@@ -34,18 +35,12 @@ export const Tour = ({ data, navigation }) => {
     title,
     webUrls
   } = data;
-  const rootRouteName = navigation.getParam('rootRouteName', '');
-  const headerTitle = navigation.getParam('title', '');
   // action to open source urls
-  const openWebScreen = (webUrl) =>
-    navigation.navigate({
-      routeName: 'Web',
-      params: {
-        title: headerTitle,
-        webUrl,
-        rootRouteName
-      }
-    });
+  const openWebScreen = useOpenWebScreen(
+    route.params?.title ?? '',
+    undefined,
+    route.params?.rootRouteName
+  );
 
   const logo = dataProvider && dataProvider.logo && dataProvider.logo.url;
   // the categories of a news item can be nested and we need the map of all names of all categories
@@ -61,7 +56,7 @@ export const Tour = ({ data, navigation }) => {
   );
 
   const businessAccount = dataProvider?.dataType === 'business_account';
-
+  const a11yText = consts.a11yLabel;
   return (
     <View>
       <ImageSection mediaContents={mediaContents} />
@@ -70,7 +65,7 @@ export const Tour = ({ data, navigation }) => {
         {!!title && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${title} (Überschrift)`}>{title}</Title>
+              <Title accessibilityLabel={`(${title}) ${a11yText.heading}`}>{title}</Title>
             </TitleContainer>
             {device.platform === 'ios' && <TitleShadow />}
           </View>
@@ -87,7 +82,7 @@ export const Tour = ({ data, navigation }) => {
         {!!description && (
           <View>
             <TitleContainer>
-              <Title accessibilityLabel={`${texts.tour.description} (Überschrift)`}>
+              <Title accessibilityLabel={`(${texts.tour.description}) ${a11yText.heading}`}>
                 {texts.tour.description}
               </Title>
             </TitleContainer>
@@ -104,11 +99,9 @@ export const Tour = ({ data, navigation }) => {
           title={texts.tour.operatingCompany}
         />
 
-        <TMBNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
+        <DataProviderNotice dataProvider={dataProvider} openWebScreen={openWebScreen} />
 
-        {!!businessAccount && (
-          <DataProviderButton dataProvider={dataProvider} navigation={navigation} />
-        )}
+        {!!businessAccount && <DataProviderButton dataProvider={dataProvider} />}
       </WrapperWithOrientation>
     </View>
   );
@@ -117,5 +110,6 @@ export const Tour = ({ data, navigation }) => {
 
 Tour.propTypes = {
   data: PropTypes.object.isRequired,
-  navigation: PropTypes.object
+  navigation: PropTypes.object,
+  route: PropTypes.object.isRequired
 };

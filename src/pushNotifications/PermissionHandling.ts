@@ -1,10 +1,12 @@
-import { Alert } from 'react-native';
-import * as Permissions from 'expo-permissions';
-import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+import { PermissionStatus } from 'expo-permissions';
+import { Alert } from 'react-native';
 
-import { addToStore, readFromStore } from '../helpers';
 import { colors, device, texts } from '../config';
+import { parseColorToHex } from '../helpers/colorHelper';
+import { addToStore, readFromStore } from '../helpers/storageHelper';
+
 import { handleIncomingToken, PushNotificationStorageKeys } from './TokenHandling';
 
 export const getInAppPermission = async (): Promise<boolean> => {
@@ -40,8 +42,16 @@ export const initializePushPermissions = async () => {
 
   inAppPermission && updatePushToken();
 
-  // this will only show the alert if inAppPermission is undefined (or null), but not if it is false
-  inAppPermission ?? showInitialPushAlert();
+  // if inAppPermission is undefined (or null), set it depending on the system permission and trigger a token update
+  if (inAppPermission === undefined || inAppPermission === null) {
+    const newValue = await handleSystemPermissions();
+
+    addToStore(PushNotificationStorageKeys.IN_APP_PERMISSION, newValue);
+
+    if (newValue) {
+      updatePushToken();
+    }
+  }
 };
 
 const registerForPushNotificationsAsync = async () => {
@@ -52,7 +62,7 @@ const registerForPushNotificationsAsync = async () => {
       name: 'default',
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: colors.primary
+      lightColor: parseColorToHex(colors.primary) ?? '#ffffff' // fall back to white if we can't make sense of the color value
     });
   }
 
@@ -63,16 +73,16 @@ export const handleSystemPermissions = async (): Promise<boolean> => {
   // Push notifications do not work properly with simulators/emulators
   if (!Constants.isDevice) return false;
 
-  const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
 
   let finalStatus = existingStatus;
 
-  if (existingStatus === Permissions.PermissionStatus.UNDETERMINED) {
-    const { status: askedStatus } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+  if (existingStatus === PermissionStatus.UNDETERMINED) {
+    const { status: askedStatus } = await Notifications.requestPermissionsAsync();
     finalStatus = askedStatus;
   }
 
-  return finalStatus === Permissions.PermissionStatus.GRANTED;
+  return finalStatus === PermissionStatus.GRANTED;
 };
 
 export const updatePushToken = async () => {
@@ -87,27 +97,6 @@ export const showSystemPermissionMissingDialog = () => {
   const { permissionMissingBody, permissionMissingTitle } = texts.pushNotifications;
 
   Alert.alert(permissionMissingTitle, permissionMissingBody, undefined);
-};
-
-const showInitialPushAlert = () => {
-  const { greetingBody, greetingTitle, approve, decline } = texts.pushNotifications;
-
-  Alert.alert(
-    greetingTitle,
-    greetingBody,
-    [
-      {
-        text: decline,
-        onPress: () => setInAppPermission(false),
-        style: 'cancel'
-      },
-      {
-        text: approve,
-        onPress: () => setInAppPermission(true)
-      }
-    ],
-    { cancelable: false }
-  );
 };
 
 export const showPermissionRequiredAlert = (approveCallback: () => void) => {

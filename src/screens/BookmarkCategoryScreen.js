@@ -4,7 +4,6 @@ import { useQuery } from 'react-apollo';
 import { ActivityIndicator } from 'react-native';
 
 import {
-  HeaderLeft,
   ListComponent,
   LoadingContainer,
   RegularText,
@@ -14,17 +13,16 @@ import {
 } from '../components';
 import { colors, consts, texts } from '../config';
 import { graphqlFetchPolicy, parseListItemsFromQuery } from '../helpers';
-import { useMatomoTrackScreenView, useRefreshTime } from '../hooks';
-import { useBookmarks } from '../hooks/Bookmarks';
+import { useBookmarks, useMatomoTrackScreenView, useRefreshTime } from '../hooks';
 import { NetworkContext } from '../NetworkProvider';
 import { getQuery } from '../queries';
 
 const { MATOMO_TRACKING } = consts;
 
-export const BookmarkCategoryScreen = ({ navigation }) => {
-  const query = navigation.getParam('query');
-  const suffix = navigation.getParam('suffix');
-  const categoryTitleDetail = navigation.getParam('categoryTitleDetail');
+export const BookmarkCategoryScreen = ({ navigation, route }) => {
+  const query = route.params?.query ?? '';
+  const suffix = route.params?.suffix ?? '';
+  const categoryTitleDetail = route.params?.categoryTitleDetail ?? '';
   const bookmarks = useBookmarks(query, suffix);
 
   const variables = { ids: bookmarks };
@@ -75,7 +73,7 @@ export const BookmarkCategoryScreen = ({ navigation }) => {
       </WrapperWithOrientation>
     );
   }
-  const listItems = parseListItemsFromQuery(query, data, false, categoryTitleDetail);
+  const listItems = parseListItemsFromQuery(query, data, categoryTitleDetail);
 
   return (
     <SafeAreaViewFlex>
@@ -84,12 +82,7 @@ export const BookmarkCategoryScreen = ({ navigation }) => {
   );
 };
 
-BookmarkCategoryScreen.navigationOptions = ({ navigation }) => {
-  return {
-    headerLeft: <HeaderLeft navigation={navigation} />
-  };
-};
-
 BookmarkCategoryScreen.propTypes = {
-  navigation: PropTypes.object.isRequired
+  navigation: PropTypes.object.isRequired,
+  route: PropTypes.object.isRequired
 };

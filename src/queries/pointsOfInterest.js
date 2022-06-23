@@ -7,8 +7,11 @@ export const GET_POINTS_OF_INTEREST = gql`
     $offset: Int
     $order: PointsOfInterestOrder
     $category: String
+    $categoryId: ID
+    $categoryIds: [ID]
     $dataProvider: String
     $dataProviderId: ID
+    $location: String
   ) {
     pointsOfInterest(
       ids: $ids
@@ -16,8 +19,11 @@ export const GET_POINTS_OF_INTEREST = gql`
       skip: $offset
       order: $order
       category: $category
+      categoryId: $categoryId
+      categoryIds: $categoryIds
       dataProvider: $dataProvider
       dataProviderId: $dataProviderId
+      location: $location
     ) {
       id
       name
@@ -61,6 +67,15 @@ export const GET_POINTS_OF_INTEREST = gql`
           description
         }
       }
+      openingHours {
+        id
+        weekday
+        timeFrom
+        timeTo
+        open
+        dateFrom
+        dateTo
+      }
       webUrls {
         id
         url
@@ -98,6 +113,7 @@ export const GET_POINT_OF_INTEREST = gql`
         }
         name
         dataType
+        notice
       }
       addresses {
         id

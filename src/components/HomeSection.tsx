@@ -1,9 +1,10 @@
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
-import { QueryHookOptions, useQuery } from 'react-apollo';
-import { NavigationScreenProp } from 'react-navigation';
+import { useQuery } from 'react-apollo';
 
-import { useHomeRefresh } from '../hooks/HomeRefresh';
-import { getQuery } from '../queries';
+import { useHomeRefresh } from '../hooks';
+import { getQuery, QUERY_TYPES } from '../queries';
+
 import { DataListSection } from './DataListSection';
 
 type Props = {
@@ -18,9 +19,10 @@ type Props = {
     | 'standby'
     | 'cache-and-network';
   navigate: () => void;
-  navigation: NavigationScreenProp<never>;
+  navigation: StackNavigationProp<any>;
+  placeholder?: React.ReactElement;
   query: string;
-  queryVariables: QueryHookOptions;
+  queryVariables: { limit?: number };
 };
 
 export const HomeSection = ({
@@ -30,6 +32,7 @@ export const HomeSection = ({
   fetchPolicy,
   navigate,
   navigation,
+  placeholder,
   query,
   queryVariables
 }: Props) => {
@@ -40,17 +43,27 @@ export const HomeSection = ({
 
   useHomeRefresh(refetch);
 
+  let showButton = !!data?.[query]?.length;
+
+  if (query === QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS) {
+    showButton =
+      !!data?.[QUERY_TYPES.POINTS_OF_INTEREST]?.length || !!data?.[QUERY_TYPES.TOURS]?.length;
+  }
+
   return (
     <DataListSection
       buttonTitle={buttonTitle}
+      limit={queryVariables?.limit}
       loading={loading}
       navigate={navigate}
+      navigateButton={navigate}
       navigation={navigation}
+      placeholder={placeholder}
       query={query}
       sectionData={data}
       sectionTitle={title}
       sectionTitleDetail={titleDetail}
-      showButton
+      showButton={showButton}
     />
   );
 };

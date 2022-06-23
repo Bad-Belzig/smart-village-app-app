@@ -3,12 +3,14 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Icon as RNEIcon } from 'react-native-elements';
 
-import { colors, normalize } from '../../config';
-import { Address, Contact, WebUrl } from '../../types';
+import { colors, consts, normalize } from '../../config';
+import { Address, Contact, OpeningHour, WebUrl } from '../../types';
 import { RegularText } from '../Text';
 import { InfoBox } from '../Wrapper';
+
 import { AddressSection } from './AddressSection';
 import { ContactSection } from './ContactSection';
+import { OpenStatus } from './OpenStatus';
 import { UrlSection } from './UrlSection';
 
 type WebUrlProps = {
@@ -22,6 +24,7 @@ type Props = WebUrlProps & {
   addresses?: Address[];
   category?: { name?: string };
   name?: string;
+  openingHours?: OpeningHour[];
   openWebScreen: (link: string) => void;
 };
 
@@ -60,6 +63,7 @@ export const InfoCard = ({
   contacts,
   name,
   webUrls,
+  openingHours,
   openWebScreen
 }: Props) => (
   <View>
@@ -72,13 +76,15 @@ export const InfoCard = ({
     {!!category && !!category.name && (
       <InfoBox>
         <RNEIcon name="list" type="material" color={colors.primary} iconStyle={styles.margin} />
-        <RegularText accessibilityLabel={`(Kategorie) ${category.name}`}>
+        <RegularText accessibilityLabel={`${consts.a11yLabel.category} (${category.name})`}>
           {category.name}
         </RegularText>
       </InfoBox>
     )}
 
-    <AddressSection address={address} addresses={addresses} />
+    <OpenStatus openingHours={openingHours} />
+
+    <AddressSection address={address} addresses={addresses} openWebScreen={openWebScreen} />
 
     <ContactSection contact={contact} contacts={contacts} />
 
@@ -91,7 +97,7 @@ export const InfoCard = ({
 
 const styles = StyleSheet.create({
   margin: {
-    marginRight: normalize(10)
+    marginRight: normalize(12)
   }
 });
 

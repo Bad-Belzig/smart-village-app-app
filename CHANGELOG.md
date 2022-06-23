@@ -5,6 +5,396 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [v2.6.0] :rocket:
+
+This version brings fist integrations of volunteer and consul areas.
+
+### Added
+
+- integration of HumHub as new optional volunteer feature including user accounts, groups, chats, events, ...
+  - extended and used the HumHub API functionalities to fit our needs for a seamless integration
+    - check this repo for more infos: https://github.com/ikuseiGmbH/smart-village-app-humhub-ext
+  - this is a first version containing a lot of features that will be expanded and optimized in upcoming releases
+- integration of Consul as new optional consul feature including user accounts, debates, proposals, polls, ...
+  - updated and used GraphQL API of https://github.com/consul/consul
+  - this is a first version containing a lot of features that will be expanded and optimized in upcoming releases
+- added an option to the settings screen so that users can see the intro of the app again
+
+### Changed
+
+- migrated Teleport API from v3 to v4 that is used for BUS-BB
+
+### Fixed
+
+- fixed waste reminder notification times for summer time
+- fixed Matomo setup with adding check for existence of mandatory values for initialization of an instance
+  - there was a warning otherwise which caused an annoying warning message on the screen with every app reload in development
+
+## [v2.5.4]
+
+Set app language to German and bugfixes
+
+### Added
+
+- added setting for feedback footer to be able to prevent it from rendering on several screens
+
+### Fixed
+
+- set default app language to German to also satisfy iOS AppStore shown language
+- removed rendering of BUS-BB teaser section
+- fixed sorting of one BUS-BB section caused by typo
+- avoided rendering of intro text in header for sub category lists
+- added missing location param when navigating from categories list into points of interests or tours
+
+## [v2.5.3]
+
+Minor improvements and bugfixes
+
+### Added
+
+- added list screens for nested categories
+- added param for categories query to exclude specific ids
+- added new empty message component
+
+### Changed
+
+- inserted zero width space after dashes to improve the Android line break behaviour
+- reduced accuracy for location access on iOS
+
+### Fixed
+
+- fixed repeated location permission request on app start
+- fixed logics for setting error in `useStaticContent` hook
+
+## [v2.5.2]
+
+Minor improvements and bugfixes
+
+### Changed
+
+- OParl file access and download urls are now opened externally instead of only being able to be copied
+
+### Fixed
+
+- date parsing for midnight (date was calculated using GMT)
+- improved image behavior when loading of an image via url image failed
+
+## [v2.5.1]
+
+Nested services
+
+### Added
+
+- added a generic TilesScreen that recieves necessary info through route params
+  - this makes it possible to nest a TilesScreen into any route
+
+### Fixed
+
+- fixed timezone for waste calendar
+- fixed crash that could happen with static json content emptiness
+
+## [v2.5.0] :rocket:
+
+Versioned static contents and further improvements.
+
+## Breaking
+
+This mobile app version needs an updated version of the main server (Februar 17th).
+
+### Added
+
+- refactored all places where we use static contents to use the `useStaticContent` hook
+- added app.json version  to `queryVariables` used in the `useStaticContent` hook
+- added app.json version to `queryVariables` of the `globalSettings` query in `src/index.js`
+- added new provider for permanent dataprovider filtering
+- added new settings section for dataprovider filtering
+- added feedback footer to detail screen
+  - added route info to send feedback info
+- added filter for points of interests by location
+- added option for multiple category ids for points of interest
+
+### Changed
+
+- return of public json contents from servers can now be considered as proper json format
+  and not string anymore, that needs to be parsed
+- adjusted queries to respect the data provider filters
+- adjusted `HomeSection` to allow for a placeholder component
+- removed `big` prop for `BoldText`
+  - the `big` definition is already existing for `RegularText` thus was a duplication
+- set the text color for the date picker of waste reminder to satisfy dark modes
+
+### Fixed
+
+- fixed app intro content below status bar
+
+## [v2.4.2]
+
+Dependencies and bugfixes.
+
+### Changed
+
+- updated a couple of dependencies under the hood
+- moved sentry secrets from global secrets to namespaced secrets to more easily allow for individual instances
+
+### Fixed
+
+- changed to a new fork of react-native-webview-leaflet to fix android crashes
+
+## [v2.4.1]
+
+Integration of Sentry and fixes.
+
+### Added
+
+- added sentry-expo to the project
+- added new multi button screen
+- integrated new GraphQL endpoint for bb-bus
+
+### Changed
+
+- unified top filter elements (those that simulate multiple tabs, e.g. within a POI category to switch between the location overview and the list)
+- category screen can now filter the categories by id
+
+### Fixed
+
+- media library permission bug due to image component
+- location overview no longer ignores the filtering by opening times
+
+## [v2.4.0] :rocket:
+
+Updated survey feature.
+
+### Changed
+
+- the following features are now possible for each survey individually through the cms
+  - can now be in a single language
+  - can now have the option of selecting multiple answers
+  - survey information can now contain html
+  - the comment section can now be disabled
+
+## [v2.3.0] :rocket:
+
+Overhauled app settings. Introduced onboarding/app intro.
+
+### Added
+
+- app intro
+  - added new app intro screen
+  - added new onboarding manager
+  - the onboarding manager will render either the navigator or the app intro depending on the completion state of the app intro
+- added a new NestedInfo screen to display lists of navigation links beneath a html content
+  - this allows for an easy implementation of a nested information structure for e.g. help sections
+- added option to filter POIs by opening times/open status
+
+### Changed
+
+- upgraded expo to version 43
+- settings
+  - the settings moved from inside of favourites to the drawer and the about screen
+  - settings now have multiple tabs: one for general settings and one for visual settings
+  - location settings now allow setting an alternate position that is used when the locations services are turned off
+- improved useStaticContent hook
+- refactored About/AboutScreen to reduce code redundancy
+- there can now be a notice for set for data providers, which will be displayed for e.g. POIs that they are providing
+
+## [v2.2.0] :rocket:
+
+This version brings the new encounter feature.
+
+### Added
+
+- users can now register for the encounter feature
+  - afterwards they can scan the qr code of other registered users to create a digital handshake
+- added a new `useStaticContent` hook to simplify queries for static contents
+  - this should be reused and refined further accross the codebase in the future
+
+### Changed
+
+- bb-bus data will now remain completely cached once it has been fetched.
+  - the bb-bus data is currently not being updated on the servers
+- minor text adjustments for route planner
+
+## [v2.1.3]
+
+Added usage of location services.
+
+### Added
+
+- added location services
+  - added corresponding global setting "locationService"
+  - added new option in the settings screen
+  - when enabled the POIs will be sorted by distance to the current position
+  - when enabled the own location will be added to the location overview map
+- added bb-navi link to POIs
+  - when location services are enabled, the current (or last known) position will be used as the starting location
+- added handling of geolocation to maplinks when pressing on the address of for example a POI
+  - the geolocation will be prioritized for the pin location if present
+
+### Changed
+
+- event index is now sectioned by date
+  - restructured code structure regarding lists
+  - split lists according to layout rather than the renderItem function (e.g. HorizontalList, VerticalList (now) <-> TextList, CardList (previous))
+- improved structure of screenOptions
+  - instead of having multiple functions, there is now one function that takes options
+  - this is more easily expandable and maintainable
+
+### Fixed
+
+- when having a specific home news category also referenced in the drawer, there is now the possibility to highlight the correct root route based on the category
+
+## [v2.1.2]
+
+Minor fixes and package updates under the hood
+
+### Added
+
+- filter commercials by date
+- improved sub queries for html screens
+  - added the possibility to pass in a params object instead of only a webUrl
+- added more device infos to tracking for matomo
+- added usage of construction sites from generic item
+
+### Fixed
+
+- added order to event widget query, which was missing to be the same as in the events index screen
+- passed query limit to data list section props, which before always rendered 3, instead of more if
+  requested
+- fixed Android notification channel color
+  - added color parsing for the Android notification channel color to result always in hex format
+- fixed wrong default for poiId for lunches
+  - during the react navigation upgrade a wrong default was added, resulting in wrong filtering
+    behavior
+- fixed require cycle in navigation config
+- fixed survey widget icon being too big
+
+## [v2.1.1]
+
+New widgets and updates on surveys
+
+### Added
+
+- new widgets for construction sites as news items and surveys
+
+### Fixed
+
+- survey answer options were not properly displayed in both languages
+- other minor fixes
+
+## [v2.1.0] :rocket:
+
+This minor version upgrade introduces the survey feature.
+
+### Added
+
+- added screens for survey
+- survey feature has been implemented with german and polish texts
+
+## [v2.0.2]
+
+Centralized icons and fonts. Fixed drawer layout for android devices.
+
+### Changed
+
+- Added a centralized point for icons, to allow for easy switching of icons
+- Specific names for used fonts are now removed from the components
+  - Instead only generic names describing the font weight and style are being used
+  - This allows for more easy switching of fonts
+
+## [v2.0.1]
+
+Minor changes after navigation rework.
+
+### Changed
+
+- removed navigation config related entries from global settings
+- reworked drawer component title to better respect screen insets on new devices
+
+## [v2.0.0] :t-rex:
+
+The second major version with configs for navigation and Expo SDK update to 42.0.0
+
+- Read about that step in: https://blog.expo.io/expo-sdk-42-579aee2348b6
+
+## [v1.8.1]
+
+Fix header left showing on initial screens
+
+### Fixed
+
+- the back navigation header is currently shown on initial tab screens,
+  even if there is no option to navigate back
+  - this change resolves that issue
+
+## [v1.8.0] :rocket:
+
+The eighth minor version upgrade includes the expo update 41, an update from react navigation
+version 3 to 5 and several minor fixes and dependency updates.
+
+- Read about the expo update step in: https://dev.to/expo/expo-sdk-41-1f2j
+
+## [v1.7.2]
+
+Updated OParl screens. Added waste calendar export.
+
+### Added
+
+- added export functionality for waste calendar
+
+### Changed
+
+- removed search functionality from oparl for now, as the used oparl systems do not provide keywords
+  - added organizations screen reachable through oparl overview screen instead
+
+## [v1.7.1]
+
+Added pagination to person list on the `OParlPeopleScreen`
+
+### Changed
+
+- reworked `OParlPeopleScreen` to use a flatlist with pagination
+- improved query for fetching organization list for the dropdown
+
+## [v1.7.0] :rocket:
+
+The seventh minor version upgrade introduces the possibility to browse
+[OParl data](https://dev.oparl.org/spezifikation/) provided by the
+[sva-apollo-server](https://github.com/ikuseiGmbH/sva-apollo-server).
+
+### Added
+
+- added screens for OParl
+  - Overview, People, Calendar, Search and Detail screens
+  - can handle OParl versions 1.0 and 1.1
+- added custom hook with independent apollo client for OParl queries
+
+### Changed
+
+- extracted reusable parts of the calendar component from the `WasteCollectionScreen`
+
+## [v1.6.3]
+
+Replace provider name with logo
+
+### Changed
+
+- added dataprovider logo to generic item query
+- updated offer to use SectionHeader component
+
+## [v1.6.2]
+
+Refactorings and bugfixes
+
+### Changed
+
+- bump ini from 1.3.5 to 1.3.8
+- bump y18n from 4.0.0 to 4.0.1
+
+### Fixed
+
+- corrected context for matomo tracking
+- corrected displaying of up to date image in image slider with interval
+
 ## [v1.6.1]
 
 Waste collection with reminders and fix for push
@@ -978,7 +1368,7 @@ https://blog.expo.io/expo-sdk-v33-0-0-is-now-available-52d1c99dfe4c#c0d2
 
 ## Breaking
 
-You need to remove `node_modules` and install your packages again.
+You need to remove `node_modules` and install your packages again.s an updated version of the main server
 
 `rm -rf node_modules/ && yarn cache clean && yarn`
 
