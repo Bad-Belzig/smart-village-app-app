@@ -239,7 +239,7 @@ export const ProposalDetail = ({ data, refetch, route, navigation }) => {
             style={styles.button}
             disabled={isLoading}
           >
-            <Icon.Send color={colors.primary} size={normalize(16)} />
+            <Icon.Mail color={colors.primary} />
           </TouchableOpacity>
         </WrapperRow>
       </Wrapper>
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     shadowColor: colors.shadow,
     shadowOpacity: 0.7,
     shadowRadius: 3,
-    backgroundColor: colors.lightestText
+    backgroundColor: colors.surface
   }
 });
 
