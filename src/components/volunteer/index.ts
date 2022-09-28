@@ -1,3 +1,4 @@
+export * from './VolunteerApplicantListItem';
 export * from './VolunteerAppointmentsCard';
 export * from './VolunteerAvatar';
 export * from './VolunteerCalendar';
@@ -8,8 +9,9 @@ export * from './VolunteerEventRecord';
 export * from './VolunteerFormCalendar';
 export * from './VolunteerFormConversation';
 export * from './VolunteerFormGroup';
+export * from './VolunteerFormProfile';
 export * from './VolunteerGroup';
-export * from './VolunteerGroupMember';
+export * from './VolunteerGroupMembersAndApplicants';
 export * from './VolunteerHeader';
 export * from './VolunteerHomeSection';
 export * from './VolunteerMessage';

@@ -3,12 +3,17 @@ import _isNumber from 'lodash/isNumber';
 import { colors, texts } from '../../config';
 import { formatTime } from '../../helpers/formatHelper';
 import { momentFormat } from '../../helpers/momentHelper';
-import { volunteerApiV1Url, volunteerAuthToken } from '../../helpers/volunteerHelper';
+import {
+  volunteerApiV1Url,
+  volunteerApiV2Url,
+  volunteerAuthToken
+} from '../../helpers/volunteerHelper';
 import { PARTICIPANT_TYPE, VolunteerCalendar } from '../../types';
 
-export const calendarAll = async (
-  queryVariables?: { dateRange?: string[]; contentContainerId?: number } | number
-) => {
+export const calendarAll = async (queryVariables?: {
+  dateRange?: string[];
+  contentContainerId?: number;
+}) => {
   const authToken = await volunteerAuthToken();
 
   const fetchObj = {
@@ -20,19 +25,16 @@ export const calendarAll = async (
     }
   };
 
-  const id =
-    queryVariables && _isNumber(queryVariables)
-      ? queryVariables
-      : queryVariables?.contentContainerId;
+  const id = queryVariables?.contentContainerId;
 
   if (id && _isNumber(id)) {
-    return (await fetch(`${volunteerApiV1Url}calendar/container/${id}`, fetchObj)).json();
+    return (await fetch(`${volunteerApiV2Url}calendar/container/${id}`, fetchObj)).json();
   }
 
-  return (await fetch(`${volunteerApiV1Url}calendar`, fetchObj)).json();
+  return (await fetch(`${volunteerApiV2Url}calendar`, fetchObj)).json();
 };
 
-export const calendar = async (id: number) => {
+export const calendar = async ({ id }: { id: number }) => {
   const authToken = await volunteerAuthToken();
 
   const fetchObj = {
@@ -44,7 +46,7 @@ export const calendar = async (id: number) => {
     }
   };
 
-  return (await fetch(`${volunteerApiV1Url}calendar/entry/${id}`, fetchObj)).json();
+  return (await fetch(`${volunteerApiV2Url}calendar/entry/${id}`, fetchObj)).json();
 };
 
 export const calendarAttend = async ({ id, type }: { id: number; type: PARTICIPANT_TYPE }) => {
@@ -82,7 +84,7 @@ export const calendarNew = async ({
   endDate,
   endTime,
   timeZone = 'Europe/Berlin',
-  forceJoin = 1,
+  forceJoin = 0,
   topics,
   contentContainerId
 }: VolunteerCalendar) => {

@@ -13,17 +13,18 @@ import {
 } from '../../helpers';
 import { useOpenWebScreen, VOLUNTEER_GROUP_REFRESH_EVENT } from '../../hooks';
 import { QUERY_TYPES } from '../../queries';
-import { groupJoin, groupLeave } from '../../queries/volunteer';
-import { ScreenName, VolunteerGroup as TVolunteerGroup } from '../../types';
+import { groupJoin, groupLeave, groupRequestMembership } from '../../queries/volunteer';
+import { JOIN_POLICY_TYPES, ScreenName, VolunteerGroup as TVolunteerGroup } from '../../types';
 import { Button } from '../Button';
 import { HtmlView } from '../HtmlView';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
 import { Logo } from '../Logo';
+import { RegularText } from '../Text';
 import { Title, TitleContainer, TitleShadow } from '../Title';
 import { Wrapper, WrapperWithOrientation } from '../Wrapper';
 
-import { VolunteerGroupMember } from './VolunteerGroupMember';
+import { VolunteerGroupMembersAndApplicants } from './VolunteerGroupMembersAndApplicants';
 import { VolunteerHomeSection } from './VolunteerHomeSection';
 import { VolunteerPosts } from './VolunteerPosts';
 
@@ -66,15 +67,33 @@ export const VolunteerGroup = ({
 
   const [isGroupMember, setIsGroupMember] = useState<boolean | undefined>();
   const [isGroupOwner, setIsGroupOwner] = useState(false);
+  const [isGroupApplicant, setIsGroupApplicant] = useState(false);
 
-  const { mutate: mutateJoin, isSuccess: isSuccessJoin } = useMutation(groupJoin);
-  const { mutate: mutateLeave, isSuccess: isSuccessLeave } = useMutation(groupLeave);
+  const {
+    mutate: mutateJoin,
+    mutateAsync: mutateAsyncJoin,
+    isSuccess: isSuccessJoin
+  } = useMutation(groupJoin);
+  const { mutate: mutateRequest, isSuccess: isSuccessRequest } =
+    useMutation(groupRequestMembership);
+  const {
+    mutate: mutateLeave,
+    mutateAsync: mutateAsyncLeave,
+    isSuccess: isSuccessLeave
+  } = useMutation(groupLeave);
 
   const join = useCallback(async () => {
     const { currentUserId } = await volunteerUserData();
 
-    currentUserId && mutateJoin({ id, userId: currentUserId });
-  }, [isGroupMember]);
+    if (!currentUserId) return;
+
+    if (joinPolicy == JOIN_POLICY_TYPES.INVITE_AND_REQUEST) {
+      mutateRequest({ id, userId: currentUserId });
+    } else {
+      // JOIN_POLICY_TYPES.OPEN
+      mutateJoin({ id, userId: currentUserId });
+    }
+  }, [isGroupMember, isGroupApplicant, joinPolicy]);
 
   const leave = useCallback(async () => {
     const { currentUserId } = await volunteerUserData();
@@ -118,13 +137,19 @@ export const VolunteerGroup = ({
           </Wrapper>
         )}
 
-        <VolunteerGroupMember
+        <VolunteerGroupMembersAndApplicants
           groupId={id}
           navigation={navigation}
+          isGroupOwner={isGroupOwner}
           isGroupMember={isGroupMember}
           setIsGroupMember={setIsGroupMember}
+          setIsGroupApplicant={setIsGroupApplicant}
+          isRefetching={isRefetching}
+          mutateAsyncJoin={mutateAsyncJoin}
           isSuccessJoin={isSuccessJoin}
+          mutateAsyncLeave={mutateAsyncLeave}
           isSuccessLeave={isSuccessLeave}
+          isSuccessRequest={isSuccessRequest}
         />
 
         {!!description && (
@@ -145,56 +170,72 @@ export const VolunteerGroup = ({
           <InfoCard category={{ name: tags }} openWebScreen={openWebScreen} />
         </Wrapper>
 
-        <VolunteerHomeSection
-          linkTitle="Alle Termine anzeigen"
-          buttonTitle="Termin eintragen"
-          showButton={isGroupOwner}
-          navigateLink={() =>
-            navigation.push(ScreenName.VolunteerIndex, {
-              title: texts.volunteer.calendar,
-              query: QUERY_TYPES.VOLUNTEER.CALENDAR_ALL,
-              queryVariables: contentContainerId,
-              rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
-            })
-          }
-          navigateButton={() =>
-            navigation.navigate(ScreenName.VolunteerForm, {
-              title: 'Termin eintragen',
-              query: QUERY_TYPES.VOLUNTEER.CALENDAR,
-              queryVariables: contentContainerId,
-              groupId: id,
-              rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
-            })
-          }
-          navigate={() =>
-            navigation.push(ScreenName.VolunteerIndex, {
-              title: texts.volunteer.calendar,
-              query: QUERY_TYPES.VOLUNTEER.CALENDAR_ALL,
-              queryVariables: contentContainerId,
-              rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
-            })
-          }
-          navigation={navigation}
-          query={QUERY_TYPES.VOLUNTEER.CALENDAR_ALL}
-          queryVariables={contentContainerId}
-          sectionTitle="Kalender"
-        />
+        {!!contentContainerId && (
+          <VolunteerHomeSection
+            linkTitle="Alle Termine anzeigen"
+            buttonTitle="Termin eintragen"
+            navigateLink={() =>
+              navigation.push(ScreenName.VolunteerIndex, {
+                title: texts.volunteer.calendar,
+                query: QUERY_TYPES.VOLUNTEER.CALENDAR_ALL,
+                queryVariables: { contentContainerId },
+                rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
+              })
+            }
+            navigateButton={() =>
+              navigation.navigate(ScreenName.VolunteerForm, {
+                title: 'Termin eintragen',
+                query: QUERY_TYPES.VOLUNTEER.CALENDAR,
+                groupId: id,
+                rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
+              })
+            }
+            navigate={() =>
+              navigation.push(ScreenName.VolunteerIndex, {
+                title: texts.volunteer.calendar,
+                query: QUERY_TYPES.VOLUNTEER.CALENDAR_ALL,
+                queryVariables: { contentContainerId },
+                rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
+              })
+            }
+            navigation={navigation}
+            query={QUERY_TYPES.VOLUNTEER.CALENDAR_ALL}
+            queryVariables={{ contentContainerId }}
+            sectionTitle="Kalender"
+            showLink
+            showButton={isGroupOwner || isGroupMember}
+          />
+        )}
 
-        <VolunteerPosts
-          contentContainerId={contentContainerId}
-          isRefetching={isRefetching}
-          openWebScreen={openWebScreen}
-          navigation={navigation}
-          isGroupMember={isGroupMember}
-        />
+        {!!contentContainerId && (
+          <VolunteerPosts
+            contentContainerId={contentContainerId}
+            isRefetching={isRefetching}
+            openWebScreen={openWebScreen}
+            navigation={navigation}
+            isGroupMember={isGroupMember}
+          />
+        )}
 
-        {!isGroupOwner && isGroupMember !== undefined && (
+        {!!joinPolicy && !isGroupOwner && isGroupMember !== undefined && (
           <Wrapper>
             <Button
-              title={isGroupMember ? texts.volunteer.leave : texts.volunteer.join}
+              title={
+                isGroupMember
+                  ? texts.volunteer.leave
+                  : isGroupApplicant
+                  ? texts.volunteer.pending
+                  : texts.volunteer.join[joinPolicy as keyof typeof texts.volunteer.join]
+              }
               invert={isGroupMember}
               onPress={isGroupMember ? leave : join}
+              disabled={isGroupApplicant}
             />
+            {!isGroupMember && joinPolicy === JOIN_POLICY_TYPES.INVITE_AND_REQUEST && (
+              <RegularText small center placeholder>
+                {texts.volunteer.requestPending}
+              </RegularText>
+            )}
           </Wrapper>
         )}
       </WrapperWithOrientation>

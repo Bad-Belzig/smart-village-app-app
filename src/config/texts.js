@@ -4,6 +4,49 @@ export const texts = {
   appIntro: {
     continue: 'Weiter'
   },
+  augmentedReality: {
+    arInfoScreen: {
+      header: 'Was is AR?',
+      loadingError:
+        'Es gibt ein Problem mit der Verbindung. Bitte versuchen Sie es später noch einmal.',
+      settingsButton: 'AR-Einstellungen'
+    },
+    arShowScreen: {
+      backNavigationErrorOnScreenRecord:
+        'Bitte beende die Videoaufzeichnung, bevor Sie zurückkehren.',
+      objectLoadErrorAlert:
+        'Beim Laden des 3D-Objekts ist ein Problem aufgetreten. Bitte versuchen Sie es erneut.',
+      screenRecordingCompleted: 'Die Aufnahme wurde erfolgreich in Ihrer Galerie gespeichert.',
+      viroRecordingError: {
+        0: 'Bei der Bildschirmaufzeichnung ist ein Fehler aufgetreten.',
+        1: 'Bitte erlauben Sie die Aufnahme von Videos/Screenshots.',
+        2: 'Bei der Initialisierung der Bildschirmaufzeichnung ist ein Fehler aufgetreten.',
+        3: 'Beim Speichern der Datei ist ein Fehler aufgetreten.',
+        4: 'Ihr System zeichnet bereits auf.',
+        5: 'Ihr System kann derzeit nicht aufzeichnen.'
+      }
+    },
+    artworkDetailScreen: {
+      downloadAndLookAtArt: 'Downloaden & AR Kunst gucken',
+      lookAtArt: 'AR Kunst gucken',
+      header: 'AR-Kunstwerk'
+    },
+    cancel: 'Abbrechen',
+    filter: {
+      mapView: 'Kartenansicht',
+      listView: 'Listenansicht'
+    },
+    hide: 'Ausblenden',
+    invalidModelError: 'Das 3D-Modell konnte nicht richtig geladen werden.',
+    loadingArtworks: 'Kunstwerke laden',
+    modalHiddenAlertMessage:
+      'Das Herunterladen der Dateien ist noch im Gange. Bitte warten Sie, bis der Download komplett abgeschlossen ist, da ansonsten Probleme mit den heruntergeladenen Dateien auftreten können.',
+    modalHiddenAlertTitle: 'Hinweis',
+    ok: 'OK',
+    wait: 'Warten',
+    whatIsAugmentedReality: 'Was ist Augmented Reality (AR)?',
+    worksOfArt: 'Kunstwerke'
+  },
   backToTop: 'zurück nach oben',
   bbBus: {
     authority: {
@@ -229,7 +272,7 @@ export const texts = {
       additional: 'Ganz praktisch',
       conversation: 'Unterhaltung',
       eventRecord: 'Veranstaltung',
-      group: 'Gruppenprofil',
+      group: 'Gruppen-/Vereinsprofil',
       member: 'Mitglied',
       task: 'Aufgabe',
       user: 'Profil'
@@ -289,8 +332,7 @@ export const texts = {
       'Schade, es wurden keine passenden Einträge in dieser Kategorie gefunden. Bitte eine Unterkategorie wählen oder zu einem späteren Zeitpunkt erneut versuchen.',
     content:
       'Schade, es wurde kein passender Inhalt gefunden, bitte zu einem späteren Zeitpunkt erneut versuchen.',
-    list:
-      'Schade, es wurden keine passenden Einträge gefunden, bitte zu einem späteren Zeitpunkt erneut versuchen.'
+    list: 'Schade, es wurden keine passenden Einträge gefunden, bitte zu einem späteren Zeitpunkt erneut versuchen.'
   },
   errors: {
     image: {
@@ -304,6 +346,7 @@ export const texts = {
   eventRecord: {
     appointments: 'Termine',
     description: 'Beschreibung',
+    filterByDailyEvents: 'Nur tagesaktuelle anzeigen',
     operatingCompany: 'Veranstalter',
     prices: 'Preise'
   },
@@ -615,6 +658,7 @@ export const texts = {
     encounterHome: 'Mitfahrbank',
     feedback: 'Feedback',
     home: appJson.expo.name,
+    mapView: 'Kartenansicht',
     routePlanner: 'Routenplaner bbnavi',
     service: appJson.expo.name,
     settings: 'Einstellungen',
@@ -624,8 +668,8 @@ export const texts = {
       calendar: 'Mein Kalender',
       home: 'Ehrenamt',
       me: 'Persönliche Daten',
-      groups: 'Meine Gruppen',
-      groupsFollowing: 'Gruppen, denen ich folge',
+      groups: 'Meine Gruppen und Vereine',
+      groupsFollowing: 'Gruppen und Vereine, denen ich folge',
       messages: 'Mein Postfach',
       personal: 'Mein Bereich',
       tasks: 'Meine Aufgaben'
@@ -668,6 +712,24 @@ export const texts = {
   },
   settingsTitles: {
     analytics: 'Matomo Analytics',
+    arListLayouts: {
+      alertTitle: 'Hinweis',
+      allDeleteAlertMessage: 'Alle Dateien löschen?',
+      allDeleteButtonTitle: 'Alle Dateien löschen',
+      allDownloadAlertMessage: 'Möchten Sie alle Dateien herunterladen?',
+      allDownloadButtonTitle: 'Alle Dateien herunterladen',
+      arListTitle: 'Dateien verwalten',
+      cancel: 'Abbrechen',
+      continue: 'Weiter',
+      deleteAlertButtonText: 'Löschen',
+      deleteAlertMessage: 'Möchten Sie die Datei löschen?',
+      deleteError:
+        'Beim Löschen von Objekten ist ein Problem aufgetreten. Bitte versuchen Sie es erneut',
+      downloadAlertButtonText: 'Herunterladen',
+      freeMemoryPlace: 'Verfügbarer Speicherplatz auf dem Gerät: ',
+      hide: 'Ausblenden',
+      ok: 'OK'
+    },
     listLayouts: {
       cardList: 'Liste mit großen Bildern',
       eventRecordsTitle: 'Veranstaltungen',
@@ -681,6 +743,7 @@ export const texts = {
     onboarding: 'App-Einführung',
     pushNotifications: 'Push-Benachrichtigungen',
     tabs: {
+      arSettings: 'AR-Einstellungen',
       general: 'Allgemein',
       listTypes: 'App-Aussehen'
     }
@@ -701,8 +764,7 @@ export const texts = {
     },
     commentSubmissionAlert: {
       de: 'Ihr Kommentar wird nun redaktionell geprüft und schnellstmöglich veröffentlicht.',
-      pl:
-        'Twój komentarz zostanie teraz sprawdzony redakcyjnie i opublikowany tak szybko, jak to możliwe.'
+      pl: 'Twój komentarz zostanie teraz sprawdzony redakcyjnie i opublikowany tak szybko, jak to możliwe.'
     },
     commentSubmissionAlertTitle: 'Ihr Kommentar wird nun redaktionell geprüft',
     dateEnd: {
@@ -719,10 +781,8 @@ export const texts = {
       submissionTitle: 'Fehler'
     },
     hint: {
-      de:
-        'Die Umfrageergebnisse werden erst angezeigt, wenn Sie Ihre Stimme abgegeben haben oder die Umfrage beendet wurde.',
-      pl:
-        'Wyniki ankiety nie będą wyświetlane, dopóki nie oddasz głosu lub ankieta nie zostanie zakończona.'
+      de: 'Die Umfrageergebnisse werden erst angezeigt, wenn Sie Ihre Stimme abgegeben haben oder die Umfrage beendet wurde.',
+      pl: 'Wyniki ankiety nie będą wyświetlane, dopóki nie oddasz głosu lub ankieta nie zostanie zakończona.'
     },
     multiSelectPossible: {
       de: 'Mehrfachantwort möglich.',
@@ -757,15 +817,26 @@ export const texts = {
   },
   volunteer: {
     abort: 'Abbrechen',
+    about: 'Über mich',
+    accept: 'Akzeptieren',
+    addDocument: 'Dokument hinzufügen',
+    addImage: 'Bild hinzufügen',
+    admin: 'Administrator',
+    applicants: 'Beitrittsanfragen',
     attend: 'Interessiert',
     attendInfo:
       'Wenn Sie Interesse an dieser Veranstaltung bekunden wird diese in den Kalender in Ihrem Bereich übernommen.\n',
+    birthday: 'Geburtstag',
     calendar: 'Kalender',
     calendarMy: 'Mein Kalender',
     conversations: 'Mein Postfach',
     conversationAllStart: 'Unterhaltung mit allen beginnen',
     conversationStart: 'Unterhaltung beginnen',
+    country: 'Land',
+    city: 'Ort',
     description: 'Beschreibung',
+    documentGreater10MBError: 'Das ausgewählte Dokument darf maximal 10 MB groß sein.',
+    documents: 'Dokumente',
     edit: 'Daten bearbeiten',
     email: 'E-Mail',
     emailError: 'E-Mail muss korrekt ausgefüllt werden',
@@ -776,30 +847,46 @@ export const texts = {
     entranceFee: 'Eintrittspreis',
     errorLoadingUser: 'Beim Laden deiner Daten ist ein Fehler aufgetreten. Bitte erneut einloggen.',
     eventRecord: {
-      appointments: 'Terminübersicht'
+      appointments: 'Termine'
     },
+    facebook: 'Facebook',
+    fax: 'Fax',
     firstname: 'Vorname',
     firstnameError: 'Vorname muss ausgefüllt werden',
-    group: 'Gruppe',
-    groups: 'Gruppen',
-    groupsMy: 'Meine Gruppen',
+    flickr: 'flickr',
+    gender: 'Geschlecht',
+    group: 'Gruppe/Verein',
+    groups: 'Gruppen und Vereine',
+    groupsMy: 'Meine Gruppen und Vereine',
+    imageGreater10MBError: 'Das ausgewählte Bild darf maximal 10 MB groß sein.',
+    images: 'Aussagekäftiges Bild',
+    invalidUrl: '-URL ist keine gültige URL',
+    invalidMail: '-Addresse ist keine gültige E-Mail-Adresse.',
     invite: 'Jemanden einladen',
-    join: 'Beitreten',
+    join: {
+      1: 'Beitrittsanfrage stellen',
+      2: 'Beitreten'
+    },
     lastname: 'Nachname',
     lastnameError: 'Nachname muss ausgefüllt werden',
     leave: 'Verlassen',
+    linkedin: 'Linkedin',
     list: 'Liste',
     location: 'Ort',
     login: 'Anmelden',
     loginFailedBody: 'Bitte Eingaben überprüfen und erneut versuchen.',
     loginFailedTitle: 'Fehler bei der Anmeldung',
     loginTitle: 'Anmelden',
+    mediaGreater10MBError: 'Das ausgewählte Medien darf maximal 10 MB groß sein.',
+    member: 'Mitglied',
     members: 'Mitglieder',
     memberships: 'Mitgliedschaften',
     message: 'Nachricht',
+    myProfile: 'Mein Profil',
+    mySpace: 'MySpace',
     name: 'Name',
     next: 'Weiter',
-    noGroups: 'Dir gehören keine Gruppen, in denen du Termine eintragen könntest.',
+    noGroups: 'Dir gehören keine Gruppen oder Vereine, in denen du Termine eintragen könntest.',
     noUsers: 'Es gibt keine Personen, denen du schreiben könntest.',
     notAttend: 'Nicht mehr interessiert',
     ok: 'OK',
@@ -813,6 +900,11 @@ export const texts = {
     passwordError: 'Passwort muss ausgefüllt werden',
     passwordForgotten: 'Passwort vergessen',
     passwordLengthError: 'Das Passwort sollte mindestens 5 Zeichen lang sein',
+    pending: 'Beitrittsanfrage ausstehend',
+    phoneMobile: 'Mobile Nummer',
+    phonePrivate: 'Privat Nummer',
+    phoneWork: 'Arbeit Nummer',
+    postalCode: 'Postleitzahl',
     postNew: 'Neuen Beitrag verfassen',
     posts: 'Beiträge',
     postsIndexLink: 'Alle Beiträge anzeigen',
@@ -831,22 +923,34 @@ export const texts = {
     registrationPrivacyText:
       'Ich bin damit einverstanden, dass meine Angaben gespeichert werden. Weitere Informationen unter:',
     registrationTitle: 'Registrieren',
+    reject: 'Ablehnen',
+    requestPending:
+      'Ihre Beitrittsanfrage wird schnellstmöglich vom Gruppenadministrator bearbeitet',
     save: 'Speichern',
     search: 'Suche',
     send: 'Senden',
     signupFailedBody: 'Bitte Eingaben überprüfen und erneut versuchen.',
     signupFailedTitle: 'Fehler bei der Registrierung',
+    skype: 'Skype',
     startDate: 'Startdatum',
     startTime: 'Startzeit',
+    state: 'Bundesland/Kanton',
+    street: 'Straße',
     tags: 'Themen',
     title: 'Titel',
     token: 'Code',
     tokenError: 'Code muss ausgefüllt werden',
     topics: 'Themen',
+    twitter: 'Twitter',
     username: 'Benutzername',
     usernameError: 'Benutzername muss ausgefüllt werden',
     usernameErrorLengthError: 'Der Benutzername sollte mindestens 4 Zeichen lang sein',
-    usernameOrEmail: 'Benutzername oder E-Mail'
+    usernameOrEmail: 'Benutzername oder E-Mail',
+    vimeo: 'Vimeo',
+    website: 'Home page',
+    xing: 'xing',
+    xmpp: 'xmpp',
+    youtube: 'Youtube'
   },
   wasteCalendar: {
     configureReminder: 'Erinnerungen einstellen',
@@ -868,6 +972,9 @@ export const texts = {
     whichDay: 'Möchten Sie am Vortag oder am Tag der Abholung benachrichtigt werden?',
     whichType: 'Für welche Müllsorten möchten Sie Erinnerungen?'
   },
+  waterTemperature: {
+    headerTitle: 'Wassertemperatur'
+  },
   weather: {
     alertsHeadline: 'Wetterwarnungen',
     currentHeadline: 'Aktuelles Wetter',
@@ -880,6 +987,7 @@ export const texts = {
     events: 'Events',
     lunch: 'Gastro',
     surveys: 'Umfragen',
+    water: 'Wasser',
     weather: 'Wetter'
   }
 };

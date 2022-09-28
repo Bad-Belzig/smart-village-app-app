@@ -1,42 +1,22 @@
-import 'moment/locale/de';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Avatar } from 'react-native-elements';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 
-import { colors, normalize } from '../../config';
+import { consts } from '../../config';
+import { volunteerMessageMedia, volunteerProfileImage, volunteerUserData } from '../../helpers';
 import {
-  momentFormat,
-  volunteerListDate,
-  volunteerProfileImage,
-  volunteerUserData
-} from '../../helpers';
-import { conversationRecipients } from '../../queries/volunteer';
-import { RegularText } from '../Text';
-import { Wrapper, WrapperWithOrientation } from '../Wrapper';
+  conversationNewEntry,
+  conversationRecipients,
+  conversationUpload
+} from '../../queries/volunteer';
+import { VolunteerConversation } from '../../types';
+import { Chat } from '../Chat';
 
-const UserAvatar = ({ uri, title }: { uri: string; title: string }) => (
-  <Avatar
-    containerStyle={styles.spacing}
-    overlayContainerStyle={[styles.overlayContainerStyle, !uri && styles.border]}
-    placeholderStyle={styles.placeholderStyle}
-    rounded
-    source={uri ? { uri } : undefined}
-    renderPlaceholderContent={
-      <Avatar
-        containerStyle={[styles.containerStyle]}
-        overlayContainerStyle={[styles.overlayContainerStyle, styles.border]}
-        rounded
-        title={title}
-        titleStyle={styles.titleStyle}
-      />
-    }
-  />
-);
+const { GUID_REGEX, IMAGE_TYPE_REGEX, PDF_TYPE_REGEX, VIDEO_TYPE_REGEX } = consts;
 
 export const VolunteerMessage = ({
   data,
-  conversationId
+  conversationId,
+  refetch
 }: {
   data: {
     results: [
@@ -52,7 +32,9 @@ export const VolunteerMessage = ({
     ];
   };
   conversationId: number;
+  refetch: () => void;
 }) => {
+  const [messageData, setMessageData] = useState<any>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const { data: dataRecipients, isLoading } = useQuery(
@@ -66,84 +48,131 @@ export const VolunteerMessage = ({
     });
   }, []);
 
+  useEffect(() => {
+    const messageArray: {
+      text?: string;
+      createdAt: string;
+      updatedAt: string;
+      _id: number;
+      image?: { type?: string; uri?: string }[];
+      pdf?: { type?: string; uri?: string }[];
+      video?: { type?: string; uri?: string }[];
+      user?: { _id: number; name: string; avatar: string };
+    }[] = [];
+
+    if (currentUserId && data?.results?.length && !!dataRecipients) {
+      data?.results?.forEach((message) => {
+        const {
+          id: _id,
+          user_id,
+          content,
+          created_at: createdAt,
+          created_by: createdBy,
+          updated_at: updatedAt
+        } = message || {};
+
+        const { title, uri } = userInfo(dataRecipients, createdBy) || undefined;
+        const { image, pdf, video } = mediaParser(content) || undefined;
+        const text = textParser(content);
+
+        messageArray.push({
+          text,
+          createdAt,
+          updatedAt,
+          _id,
+          image,
+          pdf,
+          video,
+          user: {
+            _id: user_id,
+            name: title,
+            avatar: uri
+          }
+        });
+      });
+      setMessageData(messageArray.reverse());
+    }
+  }, [currentUserId, data, dataRecipients]);
+
+  const { mutateAsync } = useMutation(conversationNewEntry);
+  const onSend = async (conversationNewEntryData: VolunteerConversation) => {
+    if (conversationNewEntryData.medias.length) {
+      conversationNewEntryData?.medias?.forEach(async ({ uri, mimeType }) => {
+        try {
+          await conversationUpload(uri, conversationId, mimeType);
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    }
+    mutateAsync(conversationNewEntryData);
+  };
+
   if (isLoading || !dataRecipients || !currentUserId) return null;
 
   return (
-    <WrapperWithOrientation>
-      {currentUserId && !!data?.results?.length && (
-        <Wrapper>
-          {data.results.map((message) => {
-            const { id, content, created_by: createdBy, updated_at } = message || {};
-            const isOwnMessage = createdBy.toString() == currentUserId;
-
-            const user = dataRecipients.find(
-              (recipient: { id: string }) => recipient.id == createdBy.toString()
-            );
-            const { display_name: displayName, guid } = user || {};
-            // get initials from the display name
-            const title = displayName
-              ?.split(' ')
-              .map((part: string) => part[0])
-              .join('');
-            const uri = volunteerProfileImage(guid);
-
-            return (
-              <View key={id}>
-                <View style={[!isOwnMessage && styles.containerStyle]}>
-                  {!isOwnMessage && <UserAvatar uri={uri} title={title} />}
-                  <RegularText right={isOwnMessage} smallest style={styles.dateTimeStyle}>
-                    {momentFormat(
-                      volunteerListDate({
-                        end_datetime: '',
-                        start_datetime: '',
-                        updated_at
-                      }),
-                      'DD.MM.YYYY HH:mm'
-                    )}
-                  </RegularText>
-                </View>
-                <RegularText
-                  primary={!isOwnMessage}
-                  right={isOwnMessage}
-                  style={styles.messageStyle}
-                >
-                  {content}
-                </RegularText>
-              </View>
-            );
-          })}
-        </Wrapper>
-      )}
-    </WrapperWithOrientation>
+    <Chat
+      data={messageData}
+      onSendButton={(message) =>
+        onSend({
+          id: [conversationId],
+          medias: message.medias,
+          message: message.text,
+          title: ''
+        }).then(refetch)
+      }
+      userId={currentUserId}
+    />
   );
 };
 
-const styles = StyleSheet.create({
-  border: {
-    borderColor: colors.darkText,
-    borderWidth: 1
-  },
-  containerStyle: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  dateTimeStyle: {
-    marginLeft: normalize(6)
-  },
-  messageStyle: {
-    marginBottom: normalize(10)
-  },
-  overlayContainerStyle: {
-    backgroundColor: colors.surface
-  },
-  placeholderStyle: {
-    backgroundColor: colors.surface
-  },
-  titleStyle: {
-    color: colors.darkText,
-    fontSize: normalize(12)
-  },
-  spacing: {
-    marginVertical: normalize(5)
-  }
-});
+// a function to sort different media types and then create a link to the required media file
+const mediaParser = (content: string) => {
+  const dataType = content
+    ?.split('](file-guid:')
+    ?.map(
+      (type) =>
+        (type?.match(VIDEO_TYPE_REGEX) ||
+          type?.match(IMAGE_TYPE_REGEX) ||
+          type?.match(PDF_TYPE_REGEX))?.[0]
+    )
+    ?.filter((type) => type);
+
+  const urisWithDataType = content?.match(GUID_REGEX)?.map((dataGUID, index) => ({
+    type: dataType?.[index],
+    uri: volunteerMessageMedia(dataGUID)
+  }));
+
+  return {
+    image: urisWithDataType?.filter(({ type }) => type?.match(IMAGE_TYPE_REGEX)),
+    pdf: urisWithDataType?.filter(({ type }) => type?.match(PDF_TYPE_REGEX)),
+    video: urisWithDataType?.filter(({ type }) => type?.match(VIDEO_TYPE_REGEX))
+  };
+};
+
+// if there is text in the content with the image, the text is only after `)`
+//   so we need to separate it to get the text
+// to access the text message, we need to extract the ones that do not have GUID
+//   information in the array
+const textParser = (content: string) =>
+  content
+    ?.split(')')
+    ?.map((text) => !text?.match(GUID_REGEX) && text)
+    ?.filter((text) => text)
+    ?.toString();
+
+// function used to generate user information
+const userInfo = (dataRecipients: any[], createdBy: number) => {
+  const user = dataRecipients.find(
+    (recipient: { id: string }) => recipient.id == createdBy.toString()
+  );
+  const { display_name: displayName, guid } = user || {};
+  // get initials from the display name
+  const title = displayName
+    ?.split(' ')
+    .map((part: string) => part[0])
+    .join('');
+  const uri = volunteerProfileImage(guid);
+
+  return { title, uri };
+};

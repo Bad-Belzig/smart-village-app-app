@@ -56,7 +56,7 @@ export const VolunteerFormGroup = ({
 
   if (isError || (!isLoading && data && !data.id)) {
     Alert.alert(
-      'Fehler beim Erstellen einer Gruppe',
+      'Fehler beim Erstellen einer Gruppe/eines Vereins',
       'Bitte Eingaben überprüfen und erneut versuchen.'
     );
     reset();
@@ -65,7 +65,7 @@ export const VolunteerFormGroup = ({
   if (isSuccessEdit && isFocused) {
     navigation.goBack();
 
-    Alert.alert('Erfolgreich', 'Die Gruppe wurde erfolgreich erstellt.');
+    Alert.alert('Erfolgreich', 'Die Gruppe/der Verein wurde erfolgreich erstellt.');
   }
 
   return (
@@ -111,8 +111,10 @@ export const VolunteerFormGroup = ({
               checked={!!value}
               onPress={() => onChange(!value)}
               title="Öffentlich"
+              checkedColor={colors.accent}
+              checkedIcon="check-square-o"
               uncheckedColor={colors.darkText}
-              checkedColor={colors.primary}
+              uncheckedIcon="square-o"
               containerStyle={styles.checkboxContainerStyle}
               textStyle={styles.checkboxTextStyle}
             />
@@ -128,8 +130,10 @@ export const VolunteerFormGroup = ({
               checked={!!value}
               onPress={() => onChange(!value)}
               title="Jeder kann beitreten"
+              checkedColor={colors.accent}
+              checkedIcon="check-square-o"
               uncheckedColor={colors.darkText}
-              checkedColor={colors.primary}
+              uncheckedIcon="square-o"
               containerStyle={styles.checkboxContainerStyle}
               textStyle={styles.checkboxTextStyle}
             />

@@ -31,7 +31,6 @@ const NAVIGATION = {
     params: {
       title: 'Termin eintragen',
       query: QUERY_TYPES.VOLUNTEER.CALENDAR,
-      queryVariables: {},
       rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
     }
   },
@@ -41,7 +40,7 @@ const NAVIGATION = {
       title: texts.volunteer.conversations,
       query: QUERY_TYPES.VOLUNTEER.CONVERSATIONS,
       queryOptions: {
-        refetchInterval: 5000
+        refetchInterval: 1000
       },
       rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
     }
@@ -65,7 +64,7 @@ const NAVIGATION = {
   GROUP_NEW: {
     name: ScreenName.VolunteerForm,
     params: {
-      title: 'Gruppe erstellen',
+      title: 'Gruppe/Verein erstellen',
       query: QUERY_TYPES.VOLUNTEER.GROUP,
       rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
     }
@@ -114,17 +113,16 @@ export const VolunteerPersonalScreen = ({ navigation }: any) => {
         }
       >
         <VolunteerHomeSection
-          linkTitle="Alle meine Gruppen anzeigen"
-          buttonTitle="Gruppe erstellen"
+          linkTitle="Alle meine Gruppen und Vereine anzeigen"
+          buttonTitle="Gruppe/Verein erstellen"
           navigateLink={() => navigation.navigate(NAVIGATION.GROUPS_MY_INDEX)}
           navigateButton={() => navigation.navigate(NAVIGATION.GROUP_NEW)}
           navigate={() => navigation.navigate(NAVIGATION.GROUPS_MY_INDEX)}
           navigation={navigation}
           query={QUERY_TYPES.VOLUNTEER.GROUPS_MY}
-          sectionTitle="Meine Gruppen"
+          sectionTitle="Meine Gruppen und Vereine"
           showLink
           showButton
-          isRandom
         />
         <VolunteerHomeSection
           linkTitle="Alle meine Termine anzeigen"
@@ -135,6 +133,8 @@ export const VolunteerPersonalScreen = ({ navigation }: any) => {
           navigation={navigation}
           query={QUERY_TYPES.VOLUNTEER.CALENDAR_ALL_MY}
           sectionTitle="Mein Kalender"
+          showLink
+          showButton
         />
         {/* <DataListSection
           linkTitle="Alle Aufgaben anzeigen"

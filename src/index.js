@@ -20,7 +20,7 @@ import { LoadingContainer } from './components';
 import { colors, consts, namespace, secrets } from './config';
 import {
   graphqlFetchPolicy,
-  latLngToLocationObject,
+  geoLocationToLocationObject,
   parsedImageAspectRatio,
   storageHelper
 } from './helpers';
@@ -43,7 +43,8 @@ const MainAppWithApolloProvider = () => {
     filter: {},
     sections: {},
     settings: {},
-    widgets: []
+    widgets: [],
+    hdvt: {}
   });
   const [initialListTypesSettings, setInitialListTypesSettings] = useState({});
   const [initialLocationSettings, setInitialLocationSettings] = useState({});
@@ -188,7 +189,7 @@ const MainAppWithApolloProvider = () => {
       globalSettings?.settings?.locationService?.defaultAlternativePosition;
 
     if (defaultAlternativePosition) {
-      locationSettings.defaultAlternativePosition = latLngToLocationObject(
+      locationSettings.defaultAlternativePosition = geoLocationToLocationObject(
         defaultAlternativePosition
       );
     }

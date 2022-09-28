@@ -87,9 +87,13 @@ export const volunteerListDate = (
     return moment.utc(updatedAt).local().format('YYYY-MM-DD HH:mm:ss');
   }
 
-  if (moment().isBetween(startDatetime, endDatetime)) return moment().format('YYYY-MM-DD');
+  if (startDatetime && endDatetime && moment().isBetween(startDatetime, endDatetime)) {
+    return moment().format('YYYY-MM-DD');
+  }
 
-  return moment(startDatetime).format(withTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD');
+  if (startDatetime) {
+    return moment(startDatetime).format(withTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD');
+  }
 };
 
 export const volunteerSubtitle = (
@@ -110,10 +114,19 @@ export const volunteerSubtitle = (
     date = date.replace('00:00', '');
   }
 
-  return subtitle(
-    withDate ? date : undefined,
-    query !== QUERY_TYPES.VOLUNTEER.CALENDAR && volunteer.tags
-  );
+  // build subtitle
+  let first;
+  let last = volunteer.location;
+
+  if (withDate) {
+    first = date;
+  }
+
+  if (query !== QUERY_TYPES.VOLUNTEER.CALENDAR && volunteer.tags?.length) {
+    last = volunteer.tags;
+  }
+
+  return subtitle(first, last);
 };
 
 export const isAttending = (currentUserId: string | null, attending?: []): boolean => {
@@ -134,6 +147,17 @@ export const isAccount = (currentUserId: string | null, account: VolunteerUser):
   return account.id.toString() == currentUserId;
 };
 
+export const isApplicant = (
+  currentUserId: string | null,
+  applicants?: { user: VolunteerUser }[]
+): boolean => {
+  if (!currentUserId || !applicants?.length) return false;
+
+  return applicants.some(
+    (item: { user: VolunteerUser }) => item.user.id.toString() == currentUserId
+  );
+};
+
 export const isMember = (
   currentUserId: string | null,
   members?: { user: VolunteerUser }[]
@@ -148,3 +172,6 @@ export const volunteerProfileImage = (guid: string) =>
 
 export const volunteerBannerImage = (guid: string) =>
   `${serverUrl}/uploads/profile_image/banner/${guid}.jpg`;
+
+export const volunteerMessageMedia = (guid: string) =>
+  `${serverUrl}/file/file/download?guid=${guid}`;

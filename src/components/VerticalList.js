@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, FlatList } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
 
 import { colors, normalize } from '../config';
 import { useRenderItem } from '../hooks';
@@ -13,6 +13,7 @@ const MAX_INITIAL_NUM_TO_RENDER = 20;
 
 export const VerticalList = ({
   data,
+  refetch,
   fetchMoreData,
   ListEmptyComponent,
   ListHeaderComponent,
@@ -26,7 +27,7 @@ export const VerticalList = ({
   const flatListRef = useRef();
   const [listEndReached, setListEndReached] = useState(false);
 
-  const renderItem = useRenderItem(query, navigation, { noSubtitle, openWebScreen });
+  const renderItem = useRenderItem(query, navigation, { noSubtitle, openWebScreen, refetch });
 
   const onEndReached = async () => {
     if (fetchMoreData) {
@@ -78,12 +79,20 @@ export const VerticalList = ({
       onEndReached={onEndReached}
       refreshControl={refreshControl}
       keyboardShouldPersistTaps="handled"
+      contentContainerStyle={styles.contentContainerStyle}
     />
   );
 };
 
+const styles = StyleSheet.create({
+  contentContainerStyle: {
+    flexGrow: 1
+  }
+});
+
 VerticalList.propTypes = {
   data: PropTypes.array,
+  refetch: PropTypes.func,
   fetchMoreData: PropTypes.func,
   leftImage: PropTypes.bool,
   ListEmptyComponent: PropTypes.object,

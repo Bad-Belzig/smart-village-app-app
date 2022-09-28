@@ -47,7 +47,7 @@ type Props = {
   navigation: StackNavigationProp<any>;
   placeholder?: React.ReactElement;
   query: VolunteerQuery;
-  queryVariables?: { dateRange?: string[] } | number;
+  queryVariables?: { dateRange?: string[]; contentContainerId?: number };
   sectionTitle?: string;
   sectionTitleDetail?: string;
   showButton?: boolean;
@@ -75,19 +75,22 @@ export const VolunteerHomeSection = ({
   const isCalendar =
     query === QUERY_TYPES.VOLUNTEER.CALENDAR_ALL || query === QUERY_TYPES.VOLUNTEER.CALENDAR_ALL_MY;
   const [showCalendar, setShowCalendar] = useState(isCalendar);
-  const { data: sectionData, isLoading, isRefetching, refetch } = useVolunteerData({
+  const { data: sectionData, isLoading, refetch } = useVolunteerData({
     query,
     queryVariables,
     isCalendar,
+    isSectioned: false,
     onlyUpcoming: !showCalendar
   });
 
   useVolunteerRefresh(
     refetch,
-    // if we have a calendar query and there is a number as queryVariables, we are on the group
-    // detail screen and need to pass the group query identifier to ensure correct behavior of
-    // the refresh event
-    isCalendar && queryVariables && _isNumber(queryVariables) ? QUERY_TYPES.VOLUNTEER.GROUP : query
+    // if we have a calendar query and there is a `contentContainerId` number in `queryVariables`,
+    // we are on the group detail screen and need to pass the group query identifier to
+    // ensure correct behavior of the refresh event
+    isCalendar && queryVariables?.contentContainerId && _isNumber(queryVariables.contentContainerId)
+      ? QUERY_TYPES.VOLUNTEER.GROUP
+      : query
   );
 
   if (isCalendar) {
@@ -109,7 +112,7 @@ export const VolunteerHomeSection = ({
             query={query}
             queryVariables={queryVariables}
             calendarData={sectionData}
-            isLoading={isLoading || isRefetching}
+            isLoading={isLoading}
             navigation={navigation}
           />
         ) : (
@@ -118,16 +121,19 @@ export const VolunteerHomeSection = ({
             navigation={navigation}
             query={query}
             sectionData={sectionData}
+            sectionTitle=""
           />
         )}
         <DataListSection
-          loading={isLoading || isRefetching}
+          loading={isLoading}
           buttonTitle={buttonTitle}
           linkTitle={linkTitle}
           limit={0}
           navigate={navigate}
           navigation={navigation}
           query={query}
+          sectionData={sectionData}
+          sectionTitle=""
           showButton={showButton}
           showLink={showAllLink}
           navigateButton={navigateButton}
@@ -139,7 +145,7 @@ export const VolunteerHomeSection = ({
 
   return (
     <DataListSection
-      loading={isLoading || isRefetching}
+      loading={isLoading}
       buttonTitle={buttonTitle}
       linkTitle={linkTitle}
       limit={limit}

@@ -27,7 +27,7 @@ import { GET_POINTS_OF_INTEREST, GET_POINT_OF_INTEREST } from './pointsOfInteres
 import { GET_POINTS_OF_INTEREST_AND_TOURS } from './pointsOfInterestAndTours';
 import { GET_PUBLIC_HTML_FILE } from './publicHtmlFiles';
 import { GET_PUBLIC_JSON_FILE } from './publicJsonFiles';
-import { GET_TOUR, GET_TOURS } from './tours';
+import { GET_TOUR, GET_TOURS, GET_TOUR_STOPS } from './tours';
 import { QUERY_TYPES } from './types';
 import {
   calendar,
@@ -37,6 +37,7 @@ import {
   group,
   groupMembership,
   groups,
+  groupsMy,
   me,
   posts,
   user
@@ -66,6 +67,7 @@ export const getQuery = (query, filterOptions = {}) => {
     [QUERY_TYPES.NEWS_ITEMS_DATA_PROVIDER]: GET_NEWS_ITEMS_DATA_PROVIDERS,
     [QUERY_TYPES.TOUR]: GET_TOUR,
     [QUERY_TYPES.TOURS]: GET_TOURS,
+    [QUERY_TYPES.TOUR_STOPS]: GET_TOUR_STOPS,
     [QUERY_TYPES.POINT_OF_INTEREST]: GET_POINT_OF_INTEREST,
     [QUERY_TYPES.POINTS_OF_INTEREST]: GET_POINTS_OF_INTEREST,
     [QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS]: GET_POINTS_OF_INTEREST_AND_TOURS,
@@ -87,6 +89,7 @@ export const getQuery = (query, filterOptions = {}) => {
     [QUERY_TYPES.CONSUL.USER]: USER,
 
     // VOLUNTEER QUERIES
+    [QUERY_TYPES.VOLUNTEER.APPLICANTS]: groupMembership,
     [QUERY_TYPES.VOLUNTEER.CALENDAR]: calendar,
     [QUERY_TYPES.VOLUNTEER.CALENDAR_ALL]: calendarAll,
     [QUERY_TYPES.VOLUNTEER.CALENDAR_ALL_MY]: calendarAll,
@@ -94,7 +97,7 @@ export const getQuery = (query, filterOptions = {}) => {
     [QUERY_TYPES.VOLUNTEER.CONVERSATIONS]: conversations,
     [QUERY_TYPES.VOLUNTEER.GROUP]: group,
     [QUERY_TYPES.VOLUNTEER.GROUPS]: groups,
-    [QUERY_TYPES.VOLUNTEER.GROUPS_MY]: groups,
+    [QUERY_TYPES.VOLUNTEER.GROUPS_MY]: groupsMy,
     [QUERY_TYPES.VOLUNTEER.MEMBERS]: groupMembership,
     [QUERY_TYPES.VOLUNTEER.POSTS]: posts,
     [QUERY_TYPES.VOLUNTEER.PROFILE]: me,

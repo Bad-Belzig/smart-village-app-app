@@ -14,8 +14,6 @@ import {
   Wrapper
 } from '../../components';
 import { colors, consts, texts } from '../../config';
-import { parseListItemsFromQuery } from '../../helpers';
-import { additionalData, myProfile, myTasks } from '../../helpers/parser/volunteer';
 import {
   useConversationsHeader,
   useLogoutHeader,
@@ -47,7 +45,9 @@ export const VolunteerIndexScreen = ({ navigation, route }: StackScreenProps<any
     query,
     queryVariables,
     queryOptions,
-    isCalendar
+    isCalendar,
+    titleDetail,
+    bookmarkable
   });
 
   // action to open source urls
@@ -61,25 +61,11 @@ export const VolunteerIndexScreen = ({ navigation, route }: StackScreenProps<any
     }, [])
   );
 
-  // TODO: remove if all queries exist
-  const details = {
-    [QUERY_TYPES.VOLUNTEER.PROFILE]: myProfile(),
-    [QUERY_TYPES.VOLUNTEER.TASKS]: myTasks(),
-    [QUERY_TYPES.VOLUNTEER.ADDITIONAL]: additionalData()
-  }[query];
-
-  const listItems = parseListItemsFromQuery(query, data || details, titleDetail, {
-    bookmarkable,
-    skipLastDivider: true,
-    withDate: query === QUERY_TYPES.VOLUNTEER.CONVERSATIONS || isCalendar,
-    isSectioned: isCalendar
-  });
-
   if (isLoading) {
     return <LoadingSpinner loading />;
   }
 
-  if (!listItems) return null;
+  if (!data) return null;
 
   return (
     <SafeAreaViewFlex>
@@ -88,15 +74,19 @@ export const VolunteerIndexScreen = ({ navigation, route }: StackScreenProps<any
           ListHeaderComponent={
             <>
               {showFilter && <DropdownHeader {...{ query: query, queryVariables, data }} />}
-              {isPosts && (
-                <VolunteerPostTextField contentContainerId={queryVariables} refetch={refetch} />
+              {isPosts && isGroupMember && (
+                <VolunteerPostTextField
+                  contentContainerId={queryVariables?.contentContainerId}
+                  refetch={refetch}
+                />
               )}
             </>
           }
           navigation={navigation}
-          data={listItems}
+          data={data}
           sectionByDate={isCalendar}
           query={query}
+          refetch={refetch}
           refreshControl={
             <RefreshControl
               refreshing={false}
@@ -108,22 +98,25 @@ export const VolunteerIndexScreen = ({ navigation, route }: StackScreenProps<any
           showBackToTop
           openWebScreen={openWebScreen}
         />
-        {((query === QUERY_TYPES.VOLUNTEER.MEMBERS && isGroupMember) ||
-          (query === QUERY_TYPES.VOLUNTEER.CALENDAR && isAttendingEvent)) && (
-          <Wrapper style={styles.noPaddingBottom}>
-            <Button
-              onPress={() =>
-                navigation.push(ScreenName.VolunteerForm, {
-                  title: texts.volunteer.conversationAllStart,
-                  query: QUERY_TYPES.VOLUNTEER.CONVERSATION,
-                  rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER,
-                  selectedUserIds: listItems.map(({ id }: VolunteerUser) => id)
-                })
-              }
-              title={texts.volunteer.conversationAllStart}
-            />
-          </Wrapper>
-        )}
+        {(((query === QUERY_TYPES.VOLUNTEER.MEMBERS ||
+          query === QUERY_TYPES.VOLUNTEER.APPLICANTS) &&
+          isGroupMember) ||
+          (query === QUERY_TYPES.VOLUNTEER.CALENDAR && isAttendingEvent)) &&
+          data?.length > 1 && (
+            <Wrapper style={styles.noPaddingBottom}>
+              <Button
+                onPress={() =>
+                  navigation.push(ScreenName.VolunteerForm, {
+                    title: texts.volunteer.conversationAllStart,
+                    query: QUERY_TYPES.VOLUNTEER.CONVERSATION,
+                    rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER,
+                    selectedUserIds: data.map(({ id }: VolunteerUser) => id)
+                  })
+                }
+                title={texts.volunteer.conversationAllStart}
+              />
+            </Wrapper>
+          )}
       </DefaultKeyboardAvoidingView>
     </SafeAreaViewFlex>
   );

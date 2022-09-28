@@ -1,10 +1,10 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useMutation } from 'react-query';
 
-import { consts, device, texts } from '../../config';
-import { isAttending, momentFormat, volunteerUserData } from '../../helpers';
+import { colors, consts, device, Icon, normalize, texts } from '../../config';
+import { isAttending, momentFormat, openLink, volunteerUserData } from '../../helpers';
 import { useOpenWebScreen } from '../../hooks';
 import { calendarAttend } from '../../queries/volunteer';
 import { PARTICIPANT_TYPE } from '../../types';
@@ -14,12 +14,23 @@ import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
 import { RegularText } from '../Text';
 import { Title, TitleContainer, TitleShadow } from '../Title';
-import { Wrapper, WrapperWithOrientation } from '../Wrapper';
+import { Touchable } from '../Touchable';
+import { Wrapper, WrapperHorizontal, WrapperWithOrientation } from '../Wrapper';
 
 import { VolunteerAppointmentsCard } from './VolunteerAppointmentsCard';
 import { VolunteerEventAttending } from './VolunteerEventAttending';
 
 const a11yText = consts.a11yLabel;
+
+type File = {
+  file_name: string;
+  guid: string;
+  mime_type: string;
+  url: string;
+};
+
+const filterForMimeType = (items: File[], mimeType: string) =>
+  items.filter((item) => item.mime_type.includes(mimeType));
 
 // eslint-disable-next-line complexity
 export const VolunteerEventRecord = ({
@@ -32,6 +43,7 @@ export const VolunteerEventRecord = ({
     id,
     content,
     description,
+    location,
     end_datetime: endDatetime,
     participant_info: participantInfo,
     participants,
@@ -39,20 +51,25 @@ export const VolunteerEventRecord = ({
     title,
     webUrls
   } = data;
-  const { files, topics } = content;
-  const mediaContents = files?.map(({ mime_type, url }: { mime_type: string; url: string }) => ({
-    contentType: mime_type.includes('image') ? 'image' : mime_type,
-    sourceUrl: { url }
-  }));
 
-  const { attending } = participants;
-  const rootRouteName = route.params?.rootRouteName ?? '';
-  const headerTitle = route.params?.title ?? '';
+  const { files, topics } = content || {};
+  const mediaContents = files?.length
+    ? filterForMimeType(files, 'image')?.map(({ mime_type, url }: File) => ({
+        contentType: mime_type.includes('image') ? 'image' : mime_type,
+        sourceUrl: { url }
+      }))
+    : undefined;
+  const documents = files?.length ? filterForMimeType(files, 'application') : undefined;
   const category = topics?.length
     ? {
         name: topics.map((topic: { name: string }) => topic.name).join(', ')
       }
     : undefined;
+
+  const address = location?.length ? { city: location } : undefined;
+  const { attending } = participants || {};
+  const rootRouteName = route.params?.rootRouteName ?? '';
+  const headerTitle = route.params?.title ?? '';
   const appointments = [
     {
       dateFrom: momentFormat(startDatetime, 'YYYY-MM-DD'),
@@ -62,12 +79,12 @@ export const VolunteerEventRecord = ({
     }
   ];
 
-  const [isAttendingEvent, setIsAttendingEvent] = useState(false);
+  const [isAttendingEvent, setIsAttendingEvent] = useState<boolean>();
 
   const checkIfAttending = useCallback(async () => {
     const { currentUserId } = await volunteerUserData();
 
-    setIsAttendingEvent(isAttending(currentUserId, attending));
+    !!currentUserId && setIsAttendingEvent(isAttending(currentUserId, attending));
   }, [participants]);
 
   useEffect(() => {
@@ -99,7 +116,7 @@ export const VolunteerEventRecord = ({
         )}
         {device.platform === 'ios' && <TitleShadow />}
 
-        {!!attending?.length && (
+        {isAttendingEvent !== undefined && !!attending?.length && (
           <VolunteerEventAttending
             calendarEntryId={id}
             data={attending}
@@ -107,6 +124,15 @@ export const VolunteerEventRecord = ({
             isAttendingEvent={isAttendingEvent}
           />
         )}
+
+        <Wrapper>
+          <InfoCard
+            category={category}
+            address={address}
+            webUrls={webUrls}
+            openWebScreen={openWebScreen}
+          />
+        </Wrapper>
 
         {!!appointments?.length && (
           <View>
@@ -136,6 +162,21 @@ export const VolunteerEventRecord = ({
           </View>
         )}
 
+        {!!documents?.length &&
+          documents.map((document) => (
+            <WrapperHorizontal key={document.guid}>
+              <Touchable onPress={() => openLink(document.url)}>
+                <View style={styles.volunteerUploadPreview}>
+                  <Icon.Document color={colors.darkText} size={normalize(16)} />
+
+                  <RegularText style={styles.volunteerInfoText} numberOfLines={1} small>
+                    {document.file_name}
+                  </RegularText>
+                </View>
+              </Touchable>
+            </WrapperHorizontal>
+          ))}
+
         {!!isAttendingEvent && !!participantInfo && (
           <View>
             <TitleContainer>
@@ -152,19 +193,33 @@ export const VolunteerEventRecord = ({
           </View>
         )}
 
-        <Wrapper>
-          <InfoCard category={category} webUrls={webUrls} openWebScreen={openWebScreen} />
-        </Wrapper>
-
-        <Wrapper>
-          {!isAttendingEvent && <RegularText small>{texts.volunteer.attendInfo}</RegularText>}
-          <Button
-            title={isAttendingEvent ? texts.volunteer.notAttend : texts.volunteer.attend}
-            invert={isAttendingEvent}
-            onPress={attend}
-          />
-        </Wrapper>
+        {isAttendingEvent !== undefined && (
+          <Wrapper>
+            {!isAttendingEvent && <RegularText small>{texts.volunteer.attendInfo}</RegularText>}
+            <Button
+              title={isAttendingEvent ? texts.volunteer.notAttend : texts.volunteer.attend}
+              invert={isAttendingEvent}
+              onPress={attend}
+            />
+          </Wrapper>
+        )}
       </WrapperWithOrientation>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  volunteerInfoText: {
+    width: '90%'
+  },
+  volunteerUploadPreview: {
+    alignItems: 'center',
+    backgroundColor: colors.gray20,
+    borderRadius: normalize(4),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: normalize(8),
+    paddingHorizontal: normalize(20),
+    paddingVertical: normalize(14)
+  }
+});

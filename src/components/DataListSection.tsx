@@ -1,5 +1,6 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import _shuffle from 'lodash/shuffle';
+import _sortBy from 'lodash/sortBy';
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -29,6 +30,7 @@ type Props = {
   placeholder?: React.ReactElement;
   query: string;
   sectionData?: unknown[];
+  additionalData?: unknown[];
   sectionTitle?: string;
   sectionTitleDetail?: string;
   showButton?: boolean;
@@ -50,7 +52,8 @@ export const DataListSection = ({
   placeholder,
   query,
   sectionData,
-  sectionTitle,
+  additionalData,
+  sectionTitle = getTitleForQuery(query),
   sectionTitleDetail,
   showButton,
   showLink
@@ -58,9 +61,8 @@ export const DataListSection = ({
   if (loading) {
     return (
       <View>
-        {!!sectionTitle && (
-          <SectionHeader onPress={navigate} title={sectionTitle ?? getTitleForQuery(query)} />
-        )}
+        {!!sectionTitle && <SectionHeader onPress={navigate} title={sectionTitle} />}
+
         <LoadingContainer>
           <ActivityIndicator color={colors.accent} />
         </LoadingContainer>
@@ -68,7 +70,7 @@ export const DataListSection = ({
     );
   }
 
-  const listData = parseListItemsFromQuery(query, sectionData, sectionTitleDetail, {
+  let listData = parseListItemsFromQuery(query, sectionData, sectionTitleDetail, {
     withDate:
       query === QUERY_TYPES.EVENT_RECORDS ||
       query === QUERY_TYPES.VOLUNTEER.CALENDAR_ALL ||
@@ -77,36 +79,51 @@ export const DataListSection = ({
     skipLastDivider: true
   });
 
+  if (additionalData?.length) {
+    listData.push(...additionalData);
+    listData = _sortBy(listData, (item) => item.listDate);
+  }
+
+  if (listData?.length) {
+    return (
+      <View>
+        {!!sectionTitle && <SectionHeader onPress={navigate} title={sectionTitle} />}
+
+        <ListComponent
+          data={isRandom ? _shuffle(listData).slice(0, limit) : listData.slice(0, limit)}
+          horizontal={horizontal}
+          navigation={navigation}
+          query={query}
+        />
+
+        {!!linkTitle && !!navigateLink && showLink && (
+          <Wrapper>
+            <Touchable onPress={navigateLink}>
+              <BoldText center primary underline>
+                {linkTitle}
+              </BoldText>
+            </Touchable>
+          </Wrapper>
+        )}
+
+        {!!buttonTitle && !!navigateButton && showButton && (
+          <Wrapper>
+            <Button title={buttonTitle} onPress={navigateButton} />
+          </Wrapper>
+        )}
+      </View>
+    );
+  }
+
+  if (!placeholder) {
+    return null;
+  }
+
   return (
     <View>
-      {!!sectionTitle && (
-        <SectionHeader onPress={navigate} title={sectionTitle ?? getTitleForQuery(query)} />
-      )}
-      {!!limit &&
-        (listData?.length ? (
-          <ListComponent
-            data={isRandom ? _shuffle(listData).slice(0, limit) : listData.slice(0, limit)}
-            horizontal={horizontal}
-            navigation={navigation}
-            query={query}
-          />
-        ) : (
-          !!placeholder && placeholder
-        ))}
-      {!!linkTitle && !!navigateLink && showLink && (
-        <Wrapper>
-          <Touchable onPress={navigateLink}>
-            <BoldText center primary underline>
-              {linkTitle}
-            </BoldText>
-          </Touchable>
-        </Wrapper>
-      )}
-      {!!buttonTitle && !!navigateButton && showButton && (
-        <Wrapper>
-          <Button title={buttonTitle} onPress={navigateButton} />
-        </Wrapper>
-      )}
+      {!!sectionTitle && <SectionHeader onPress={navigate} title={sectionTitle} />}
+
+      {placeholder}
     </View>
   );
 };

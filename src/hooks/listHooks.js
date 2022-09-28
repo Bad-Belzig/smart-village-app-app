@@ -4,6 +4,7 @@ import React, { useCallback, useContext } from 'react';
 
 import { CardListItem } from '../components/CardListItem';
 import { TextListItem } from '../components/TextListItem';
+import { VolunteerApplicantListItem } from '../components/volunteer/VolunteerApplicantListItem';
 import { VolunteerConversationListItem } from '../components/volunteer/VolunteerConversationListItem';
 import { VolunteerPostListItem } from '../components/volunteer/VolunteerPostListItem';
 import { consts } from '../config';
@@ -29,7 +30,12 @@ const getListType = (query, listTypesSettings) => {
  * as well as on the listTypesSettings of the SettingsContext
  * @param {string} query
  * @param {any} navigation
- * @param {{ horizontal?: boolean; noSubtitle?: boolean; }} options
+ * @param {{
+ *          horizontal?: boolean;
+ *          noSubtitle?: boolean;
+ *          openWebScreen?: () => void;
+ *          refetch?: () => void
+ *        }} options
  * @returns renderItem function
  */
 export const useRenderItem = (query, navigation, options = {}) => {
@@ -81,6 +87,21 @@ export const useRenderItem = (query, navigation, options = {}) => {
                   ? section.data.length - 1 !== index
                   : undefined
               }}
+              navigation={navigation}
+            />
+          );
+        }
+
+        if (query === QUERY_TYPES.VOLUNTEER.APPLICANTS) {
+          return (
+            <VolunteerApplicantListItem
+              item={{
+                ...item,
+                bottomDivider: isArray(section?.data)
+                  ? section.data.length - 1 !== index
+                  : undefined
+              }}
+              refetch={options.refetch}
               navigation={navigation}
             />
           );

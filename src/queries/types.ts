@@ -2,6 +2,7 @@ import _camelCase from 'lodash/camelCase';
 
 export const QUERY_TYPES = {
   APP_USER_CONTENT: 'appUserContent',
+  AR_DOWNLOAD_LIST: 'arDownloadList',
   CATEGORIES: 'categories',
   CONSTRUCTION_SITES: 'constructionSites',
   CONSUL: {
@@ -47,8 +48,10 @@ export const QUERY_TYPES = {
   PUBLIC_HTML_FILE: 'publicHtmlFile',
   PUBLIC_JSON_FILE: 'publicJsonFile',
   TOUR: 'tour',
+  TOUR_STOPS: 'tourStops',
   TOURS: 'tours',
   VOLUNTEER: {
+    APPLICANTS: 'applicants',
     ADDITIONAL: 'additional',
     CALENDAR_ALL_MY: 'calendarAllMy',
     CALENDAR_ALL: 'calendarAll',
@@ -68,6 +71,7 @@ export const QUERY_TYPES = {
   } as const,
   WASTE_ADDRESSES: 'wasteAddresses',
   WASTE_STREET: 'wasteStreet',
+  WATER_TEMPERATURE: 'waterTemperature',
   WEATHER_MAP: 'weatherMap',
   WEATHER_MAP_CURRENT: 'weatherMapCurrent'
 };

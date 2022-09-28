@@ -1,3 +1,4 @@
+export * from './augmentedReality';
 export * from './consul';
 export * from './parser';
 
@@ -17,6 +18,7 @@ export * from './headerHelper';
 export * from './htmlViewHelper';
 export * from './imageHelper';
 export * from './initializationHelper';
+export * from './jsonParser';
 export * from './linkHelper';
 export * from './mapHelper';
 export * from './matomoHelper';

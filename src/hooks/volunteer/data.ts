@@ -4,13 +4,13 @@ import { useQuery } from 'react-query';
 
 import {
   isAttending,
-  isOwner,
   isUpcomingDate,
-  volunteerListDate,
+  parseListItemsFromQuery,
   volunteerUserData
 } from '../../helpers';
+import { additionalData, myProfile, myTasks } from '../../helpers/parser/volunteer';
 import { getQuery, QUERY_TYPES } from '../../queries';
-import { VolunteerQuery } from '../../types';
+import { MEMBER_STATUS_TYPES, VolunteerQuery } from '../../types';
 
 /* eslint-disable complexity */
 export const useVolunteerData = ({
@@ -18,13 +18,19 @@ export const useVolunteerData = ({
   queryVariables,
   queryOptions,
   isCalendar,
-  onlyUpcoming = true
+  isSectioned,
+  onlyUpcoming = true,
+  titleDetail,
+  bookmarkable
 }: {
   query: VolunteerQuery;
-  queryVariables?: { dateRange?: string[]; contentContainerId?: number } | number;
-  queryOptions?: { refetchInterval?: number };
+  queryVariables?: { dateRange?: string[]; contentContainerId?: number; id?: number };
+  queryOptions?: { refetchInterval?: number; enabled?: boolean };
   isCalendar?: boolean;
+  isSectioned?: boolean;
   onlyUpcoming?: boolean;
+  titleDetail?: string;
+  bookmarkable?: boolean;
 }): {
   data: any[];
   isLoading: boolean;
@@ -41,17 +47,38 @@ export const useVolunteerData = ({
   const [volunteerData, setVolunteerData] = useState<any[]>([]);
 
   const processVolunteerData = useCallback(async () => {
+    const { currentUserId } = await volunteerUserData();
     let processedVolunteerData = data?.results as any[];
+
+    if (query === QUERY_TYPES.VOLUNTEER.CALENDAR) {
+      processedVolunteerData = data?.participants?.attending as any[];
+    }
+
+    // TODO: remove if all queries exist
+    const details = {
+      [QUERY_TYPES.VOLUNTEER.PROFILE]: myProfile(),
+      [QUERY_TYPES.VOLUNTEER.TASKS]: myTasks(),
+      [QUERY_TYPES.VOLUNTEER.ADDITIONAL]: additionalData()
+    }[query];
+
+    processedVolunteerData = parseListItemsFromQuery(
+      query,
+      processedVolunteerData || details,
+      titleDetail,
+      {
+        bookmarkable,
+        skipLastDivider: true,
+        withDate: query === QUERY_TYPES.VOLUNTEER.CONVERSATIONS || (!isSectioned ?? isCalendar),
+        isSectioned: isSectioned ?? isCalendar,
+        queryVariables: {
+          currentUserId
+        }
+      }
+    );
 
     setIsProcessing(true);
 
     if (isCalendar) {
-      // add `listDate` to appointments for calendar list view
-      processedVolunteerData = processedVolunteerData?.map((item: any) => ({
-        ...item,
-        listDate: volunteerListDate(item)
-      }));
-
       if (queryVariables?.dateRange?.length) {
         // show only selected day appointments for calendar list view
         processedVolunteerData = processedVolunteerData?.filter(
@@ -65,21 +92,12 @@ export const useVolunteerData = ({
       }
 
       if (query === QUERY_TYPES.VOLUNTEER.CALENDAR_ALL_MY) {
-        const { currentUserId } = await volunteerUserData();
         // show only attending dates for current user if on personal calendar view
         processedVolunteerData = processedVolunteerData?.filter(
           (item: { participants?: { attending?: [] } }) =>
             isAttending(currentUserId, item.participants?.attending)
         );
       }
-    }
-
-    if (query === QUERY_TYPES.VOLUNTEER.GROUPS_MY) {
-      const { currentUserId } = await volunteerUserData();
-      // show only attending dates for current user if on personal calendar view
-      processedVolunteerData = processedVolunteerData?.filter((item: { owner: { id: number } }) =>
-        isOwner(currentUserId, item.owner)
-      );
     }
 
     // ORDERING
@@ -96,16 +114,26 @@ export const useVolunteerData = ({
     }
 
     if (query === QUERY_TYPES.VOLUNTEER.MEMBERS) {
+      processedVolunteerData = processedVolunteerData?.filter(
+        (member: { status: number }) => member.status === MEMBER_STATUS_TYPES.MEMBER
+      );
+      processedVolunteerData = _orderBy(processedVolunteerData, 'user.display_name', 'asc');
+    }
+
+    if (query === QUERY_TYPES.VOLUNTEER.APPLICANTS) {
+      processedVolunteerData = processedVolunteerData?.filter(
+        (member: { status: number }) => member.status === MEMBER_STATUS_TYPES.APPLICANT
+      );
       processedVolunteerData = _orderBy(processedVolunteerData, 'user.display_name', 'asc');
     }
 
     if (query === QUERY_TYPES.VOLUNTEER.CALENDAR) {
-      processedVolunteerData = _orderBy(data?.participants?.attending, 'display_name', 'asc');
+      processedVolunteerData = _orderBy(processedVolunteerData, 'display_name', 'asc');
     }
 
     setVolunteerData(processedVolunteerData);
     setIsProcessing(false);
-  }, [query, queryVariables, onlyUpcoming, data, refetch]);
+  }, [query, queryVariables, isCalendar, isSectioned, onlyUpcoming, data, refetch]);
 
   useEffect(() => {
     processVolunteerData();

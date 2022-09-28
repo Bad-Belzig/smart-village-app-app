@@ -1,7 +1,7 @@
 import _filter from 'lodash/filter';
 import _shuffle from 'lodash/shuffle';
 
-import { consts, texts } from '../../config';
+import { colors, consts, texts } from '../../config';
 import { QUERY_TYPES } from '../../queries';
 import { GenericType, ScreenName } from '../../types';
 import { eventDate, isBeforeEndOfToday, isTodayOrLater } from '../dateTimeHelper';
@@ -11,7 +11,7 @@ import { momentFormatUtcToLocal } from '../momentHelper';
 import { getTitleForQuery } from '../queryHelper';
 import { shareMessage } from '../shareHelper';
 import { subtitle } from '../textHelper';
-import { volunteerSubtitle } from '../volunteerHelper';
+import { volunteerListDate, volunteerSubtitle } from '../volunteerHelper';
 
 const { ROOT_ROUTE_NAMES } = consts;
 
@@ -41,6 +41,7 @@ const parseEventRecords = (data, skipLastDivider, withDate) => {
     picture: {
       url: mainImageOfMediaContents(eventRecord.mediaContents)
     },
+    listDate: eventRecord.listDate,
     routeName: ScreenName.Detail,
     params: {
       title: texts.detailTitles.eventRecord,
@@ -214,39 +215,75 @@ const parsePointsOfInterestAndTours = (data) => {
   return _shuffle([...(pointsOfInterest || []), ...(tours || [])]);
 };
 
-const parseVolunteers = (data, query, skipLastDivider, withDate, isSectioned) => {
-  return data?.map((volunteer, index) => ({
-    id: volunteer.id || volunteer?.user?.id,
-    title:
-      volunteer.title || volunteer.name || volunteer.display_name || volunteer.user?.display_name,
-    subtitle: volunteerSubtitle(volunteer, query, withDate, isSectioned),
-    picture: volunteer.picture,
-    routeName: ScreenName.VolunteerDetail,
-    onPress: volunteer.onPress,
-    listDate: volunteer.listDate,
-    status: volunteer.status,
-    params: {
-      title: getTitleForQuery(query, volunteer),
-      query,
-      queryVariables: { id: volunteer.user?.id ? `${volunteer.user.id}` : `${volunteer.id}` },
-      queryOptions: query === QUERY_TYPES.VOLUNTEER.CONVERSATION && {
-        refetchInterval: 5000
+/* eslint-disable complexity */
+const parseVolunteers = (data, query, skipLastDivider, withDate, isSectioned, currentUserId) => {
+  return data?.map((volunteer, index) => {
+    let badge;
+
+    if (query === QUERY_TYPES.VOLUNTEER.GROUP && volunteer?.role === 'admin') {
+      badge = {
+        value: texts.volunteer.admin,
+        textStyle: {
+          color: colors.lightestText
+        },
+        badgeStyle: {
+          backgroundColor: colors.primary
+        }
+      };
+    }
+
+    if (
+      query === QUERY_TYPES.VOLUNTEER.USER &&
+      (volunteer?.user?.id || volunteer?.id) == currentUserId
+    ) {
+      badge = {
+        value: texts.volunteer.myProfile,
+        textStyle: {
+          color: colors.lightestText
+        },
+        badgeStyle: {
+          backgroundColor: colors.primary
+        }
+      };
+    }
+
+    return {
+      ...volunteer,
+      id: volunteer.id || volunteer?.user?.id,
+      title:
+        volunteer.title || volunteer.name || volunteer.display_name || volunteer.user?.display_name,
+      subtitle: volunteer.subtitle || volunteerSubtitle(volunteer, query, withDate, isSectioned),
+      badge: volunteer.badge || badge,
+      picture: volunteer.picture,
+      routeName: ScreenName.VolunteerDetail,
+      onPress: volunteer.onPress,
+      listDate: volunteer.listDate || volunteerListDate(volunteer),
+      status: volunteer.status,
+      params: {
+        title: getTitleForQuery(query, volunteer),
+        query,
+        queryVariables: { id: volunteer.user?.id ? `${volunteer.user.id}` : `${volunteer.id}` },
+        queryOptions: query === QUERY_TYPES.VOLUNTEER.CONVERSATION && {
+          refetchInterval: 1000
+        },
+        rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER,
+        shareContent: query !== QUERY_TYPES.VOLUNTEER.CONVERSATION && {
+          message: shareMessage(
+            {
+              title: volunteer.title || volunteer.name,
+              subtitle:
+                volunteer.subtitle || volunteerSubtitle(volunteer, query, withDate, isSectioned)
+            },
+            query
+          )
+        },
+        details: volunteer
       },
-      rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER,
-      shareContent: query !== QUERY_TYPES.VOLUNTEER.CONVERSATION && {
-        message: shareMessage(
-          {
-            title: volunteer.title || volunteer.name,
-            subtitle: volunteerSubtitle(volunteer, query, withDate)
-          },
-          query
-        )
-      },
-      details: volunteer
-    },
-    bottomDivider: !skipLastDivider || index !== data.length - 1
-  }));
+      bottomDivider: !skipLastDivider || index !== data.length - 1
+    };
+  });
 };
+/* eslint-enable complexity */
 
 const querySwitcherForDetail = (query) => {
   switch (query) {
@@ -308,7 +345,13 @@ const parseConsulData = (data, query, skipLastDivider) => {
  * @param {string} query
  * @param {any} data
  * @param {string | undefined} titleDetail
- * @param {{ bookmarkable?: boolean; skipLastDivider?: boolean; withDate?: boolean, isSectioned?: boolean }} options
+ * @param {{
+ *    bookmarkable?: boolean;
+ *    skipLastDivider?: boolean;
+ *    withDate?: boolean,
+ *    isSectioned?: boolean,
+ *    queryVariables?: any
+ *  }} options
  * @returns
  */
 // eslint-disable-next-line complexity
@@ -353,8 +396,16 @@ export const parseListItemsFromQuery = (query, data, titleDetail, options = {}) 
     case QUERY_TYPES.VOLUNTEER.CONVERSATIONS:
       return parseVolunteers(data, QUERY_TYPES.VOLUNTEER.CONVERSATION, skipLastDivider, withDate);
     case QUERY_TYPES.VOLUNTEER.MEMBERS:
+    case QUERY_TYPES.VOLUNTEER.APPLICANTS:
     case QUERY_TYPES.VOLUNTEER.CALENDAR:
-      return parseVolunteers(data, QUERY_TYPES.VOLUNTEER.USER, skipLastDivider);
+      return parseVolunteers(
+        data,
+        QUERY_TYPES.VOLUNTEER.USER,
+        skipLastDivider,
+        undefined,
+        undefined,
+        queryVariables?.currentUserId
+      );
     case QUERY_TYPES.VOLUNTEER.TASKS:
     case QUERY_TYPES.VOLUNTEER.ADDITIONAL:
     case QUERY_TYPES.VOLUNTEER.PROFILE:

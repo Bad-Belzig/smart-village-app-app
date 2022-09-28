@@ -12,13 +12,11 @@ import {
 } from '../../components';
 import { texts } from '../../config';
 import { storeVolunteerUserData } from '../../helpers';
-import { useLogoutHeader, usePullToRefetch } from '../../hooks';
+import { usePullToRefetch } from '../../hooks';
 import { QUERY_TYPES } from '../../queries';
 import { me } from '../../queries/volunteer';
 
 export const VolunteerMeScreen = ({ navigation, route }: StackScreenProps<any>) => {
-  useLogoutHeader({ query: QUERY_TYPES.VOLUNTEER.PROFILE, navigation });
-
   const { isLoading, isError, isSuccess, data, refetch } = useQuery(QUERY_TYPES.VOLUNTEER.ME, me);
 
   const RefreshControl = usePullToRefetch(refetch);
@@ -34,7 +32,7 @@ export const VolunteerMeScreen = ({ navigation, route }: StackScreenProps<any>) 
     return <LoadingSpinner loading />;
   }
 
-  if (isError || (isSuccess && data?.status !== 200)) {
+  if (isError || (isSuccess && data?.status && data?.status !== 200)) {
     return (
       <SafeAreaViewFlex>
         <Wrapper>

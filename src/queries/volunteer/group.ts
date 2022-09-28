@@ -1,5 +1,9 @@
 import { texts } from '../../config';
-import { volunteerApiV1Url, volunteerAuthToken } from '../../helpers/volunteerHelper';
+import {
+  volunteerApiV1Url,
+  volunteerApiV2Url,
+  volunteerAuthToken
+} from '../../helpers/volunteerHelper';
 import { JOIN_POLICY_TYPES, VISIBILITY_TYPES, VolunteerGroup } from '../../types';
 
 export const groups = async () => {
@@ -14,10 +18,10 @@ export const groups = async () => {
     }
   };
 
-  return (await fetch(`${volunteerApiV1Url}space`, fetchObj)).json();
+  return (await fetch(`${volunteerApiV2Url}space`, fetchObj)).json();
 };
 
-export const group = async (id: number) => {
+export const groupsMy = async () => {
   const authToken = await volunteerAuthToken();
 
   const fetchObj = {
@@ -29,7 +33,22 @@ export const group = async (id: number) => {
     }
   };
 
-  return (await fetch(`${volunteerApiV1Url}space/${id}`, fetchObj)).json();
+  return (await fetch(`${volunteerApiV2Url}space/memberships`, fetchObj)).json();
+};
+
+export const group = async ({ id }: { id: number }) => {
+  const authToken = await volunteerAuthToken();
+
+  const fetchObj = {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: authToken ? `Bearer ${authToken}` : ''
+    }
+  };
+
+  return (await fetch(`${volunteerApiV2Url}space/${id}`, fetchObj)).json();
 };
 
 export const groupNew = async ({
@@ -97,7 +116,7 @@ export const groupEdit = async ({
   return (await fetch(`${volunteerApiV1Url}space/${id}`, fetchObj)).json();
 };
 
-export const groupMembership = async (id: number) => {
+export const groupMembership = async ({ id }: { id: number }) => {
   const authToken = await volunteerAuthToken();
 
   const fetchObj = {
@@ -109,7 +128,7 @@ export const groupMembership = async (id: number) => {
     }
   };
 
-  return (await fetch(`${volunteerApiV1Url}space/${id}/membership`, fetchObj)).json();
+  return (await fetch(`${volunteerApiV2Url}space/${id}/membership`, fetchObj)).json();
 };
 
 export const groupJoin = async ({ id, userId }: { id: number; userId: string }) => {
@@ -124,7 +143,23 @@ export const groupJoin = async ({ id, userId }: { id: number; userId: string }) 
     }
   };
 
-  return (await fetch(`${volunteerApiV1Url}space/${id}/membership/${userId}`, fetchObj)).json();
+  return (await fetch(`${volunteerApiV2Url}space/${id}/membership/${userId}`, fetchObj)).json();
+};
+export const groupRequestMembership = async ({ id, userId }: { id: number; userId: string }) => {
+  const authToken = await volunteerAuthToken();
+
+  const fetchObj = {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: authToken ? `Bearer ${authToken}` : ''
+    }
+  };
+
+  return (
+    await fetch(`${volunteerApiV2Url}space/${id}/membership/${userId}/request`, fetchObj)
+  ).json();
 };
 
 export const groupLeave = async ({ id, userId }: { id: number; userId: string }) => {
