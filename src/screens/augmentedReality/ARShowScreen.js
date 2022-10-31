@@ -115,16 +115,22 @@ export const ARShowScreen = ({ navigation, route }) => {
 const objectParser = async ({ item, setObject, setIsLoading, onPress }) => {
   const parsedObject = { texture: [] };
 
-  if (item?.payload?.animationName) {
-    parsedObject.animationName = item?.payload?.animationName;
+  // TODO: in the future the index 0 used here will be changed according to time logic!
+  const localUris = item?.payload?.scenes?.[0]?.localUris;
+
+  if (localUris?.animationName) {
+    parsedObject.animationName = localUris?.animationName;
   }
 
-  item?.payload?.localUris?.forEach((item) => {
+  localUris?.forEach((item) => {
     if (item.type === 'texture') {
       parsedObject[item.type]?.push({ uri: item?.uri });
     } else {
       parsedObject[item.type] = {
         chromaKeyFilteredVideo: item?.chromaKeyFilteredVideo,
+        color: item?.color,
+        intensity: item?.intensity,
+        isSpatialSound: item?.isSpatialSound,
         maxDistance: item?.maxDistance,
         minDistance: item?.minDistance,
         physicalWidth: item?.physicalWidth,
@@ -132,7 +138,7 @@ const objectParser = async ({ item, setObject, setIsLoading, onPress }) => {
         rolloffModel: item?.rolloffModel,
         rotation: item?.rotation,
         scale: item?.scale,
-        isSpatialSound: item?.isSpatialSound,
+        temperature: item?.temperature,
         uri: item?.uri
       };
     }

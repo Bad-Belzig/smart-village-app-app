@@ -11,9 +11,10 @@ import {
   ViroVideo
 } from '@viro-community/react-viro';
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 
 import { colors, texts } from '../../config';
+import { SettingsContext } from '../../SettingsProvider';
 
 export const AugmentedRealityView = ({ sceneNavigator }) => {
   const {
@@ -24,6 +25,10 @@ export const AugmentedRealityView = ({ sceneNavigator }) => {
     setIsAnchorFound,
     object
   } = sceneNavigator.viroAppProps;
+  const { globalSettings } = useContext(SettingsContext);
+  const {
+    settings: { ar }
+  } = globalSettings;
 
   const TARGET = 'targetImage';
 
@@ -31,7 +36,7 @@ export const AugmentedRealityView = ({ sceneNavigator }) => {
     ViroARTrackingTargets.createTargets({
       [TARGET]: {
         orientation: 'Up',
-        physicalWidth: object?.target?.physicalWidth || 0.2, // real world width in meters
+        physicalWidth: ar?.physicalWidthforTargetImage || 0.2, // real world width in meters
         source: { uri: object?.target?.uri },
         type: 'image'
       }
@@ -55,7 +60,12 @@ export const AugmentedRealityView = ({ sceneNavigator }) => {
 
   return (
     <ViroARScene>
-      <ViroAmbientLight color={colors.surface} />
+      <ViroAmbientLight
+        color={object?.light?.color || colors.surface}
+        temperature={object?.light?.temperature || 6500}
+        intensity={object?.light?.intensity || 1000}
+        rotation={object?.light?.rotation || [0, 0, 0]}
+      />
 
       {object?.target ? (
         <ViroARImageMarker

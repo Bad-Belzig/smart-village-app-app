@@ -4,6 +4,61 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org/).
+## [v3.0.4]
+
+New features for `AugmentedReality` and minor bug fixes
+
+### Added
+
+- added a document explaining how to use the `AugmentedReality` feature
+- added a description about the artwork to the `ArtworkDetail` page
+- added props required for `ViroAmbientLight` from server
+
+### Changed
+
+- the ability to download one model for `AugmentedReality` has been updated to download multiple models
+- updated `AugmentedReality`'s `physicalWidth` prop to come from `globalSettings`
+- removed description of 3D model on full screen map page
+
+### Fixed
+
+- fixed an issue where the toggle activated after changing tabs on the `SettingsScreen` would not update
+- fixed the problem of not displaying the size of the `AugmentedReality` model properly
+
+## [v3.0.3]
+
+Fix coords in location settings
+
+### Fixed
+
+- set `initialRegion` more explicitly to avoid undefineds
+- extended setting coords in `getLocationMarker` because in global settings we are storing the short ones
+
+## [v3.0.2]
+
+Fix location request on map for iOS
+
+### Fixed
+
+- `showsUserLocation = false` was causing location requests in iOS even if location services where turned off entirely
+- added check for global setting and setting the default value for that special prop
+
+## [v3.0.1]
+
+Minor improvements and bugfixes
+
+### Added
+
+- added image to `ServiceTiles` screen
+
+### Changed
+
+- get tour id for AR settings from global settings and removed hardcoded tour id
+
+### Fixed
+
+- added `lightboxProps` to the `MessageImage` component to remove the `useNativeDrive` warning when an image is opened in the `GiftedChat` component
+- added `zIndex` prop to `Polyline` component in `Maps` to make polyline visible on Android devices
 
 ## [v3.0.0] :t-rex:
 
