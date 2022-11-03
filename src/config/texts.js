@@ -81,7 +81,7 @@ export const texts = {
     showAll: 'Alle anzeigen'
   },
   categoryFilter: {
-    dataProvider: 'Datenquelle',
+    dataProvider: 'Datenquellenauswahl',
     category: 'Kategorie'
   },
   categoryList: {
@@ -272,7 +272,7 @@ export const texts = {
       additional: 'Ganz praktisch',
       conversation: 'Unterhaltung',
       eventRecord: 'Veranstaltung',
-      group: 'Gruppen-/Vereinsprofil',
+      group: 'Gruppe/Verein',
       member: 'Mitglied',
       task: 'Aufgabe',
       user: 'Profil'
@@ -817,8 +817,10 @@ export const texts = {
   },
   volunteer: {
     abort: 'Abbrechen',
-    about: 'Über mich',
+    about: 'Über',
+    aboutMe: 'Über mich',
     accept: 'Akzeptieren',
+    accessionDirective: 'Beitritts-Richtlinie',
     addDocument: 'Dokument hinzufügen',
     addImage: 'Bild hinzufügen',
     admin: 'Administrator',
@@ -829,12 +831,15 @@ export const texts = {
     birthday: 'Geburtstag',
     calendar: 'Kalender',
     calendarMy: 'Mein Kalender',
-    conversations: 'Mein Postfach',
+    calendarNew: 'Termin erstellen',
+    contactGroupOwner: 'Gruppenbesitzer kontaktieren',
     conversationAllStart: 'Unterhaltung mit allen beginnen',
+    conversations: 'Mein Postfach',
     conversationStart: 'Unterhaltung beginnen',
     country: 'Land',
     city: 'Ort',
     description: 'Beschreibung',
+    delete: 'Löschen',
     documentGreater10MBError: 'Das ausgewählte Dokument darf maximal 10 MB groß sein.',
     documents: 'Dokumente',
     edit: 'Daten bearbeiten',
@@ -849,6 +854,7 @@ export const texts = {
     eventRecord: {
       appointments: 'Termine'
     },
+    events: 'Veranstaltungen',
     facebook: 'Facebook',
     fax: 'Fax',
     firstname: 'Vorname',
@@ -858,6 +864,7 @@ export const texts = {
     group: 'Gruppe/Verein',
     groups: 'Gruppen und Vereine',
     groupsMy: 'Meine Gruppen und Vereine',
+    groupNew: 'Gruppe/Verein erstellen',
     imageGreater10MBError: 'Das ausgewählte Bild darf maximal 10 MB groß sein.',
     images: 'Aussagekäftiges Bild',
     invalidUrl: '-URL ist keine gültige URL',
@@ -882,6 +889,8 @@ export const texts = {
     members: 'Mitglieder',
     memberships: 'Mitgliedschaften',
     message: 'Nachricht',
+    messageNew: 'Nachricht senden',
+    moderator: 'Moderator',
     myProfile: 'Mein Profil',
     mySpace: 'MySpace',
     name: 'Name',
@@ -936,6 +945,7 @@ export const texts = {
     startTime: 'Startzeit',
     state: 'Bundesland/Kanton',
     street: 'Straße',
+    subject: 'Betreff',
     tags: 'Themen',
     title: 'Titel',
     token: 'Code',
@@ -947,6 +957,7 @@ export const texts = {
     usernameErrorLengthError: 'Der Benutzername sollte mindestens 4 Zeichen lang sein',
     usernameOrEmail: 'Benutzername oder E-Mail',
     vimeo: 'Vimeo',
+    visibility: 'Sichtbarkeit',
     website: 'Home page',
     xing: 'xing',
     xmpp: 'xmpp',

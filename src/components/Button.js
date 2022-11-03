@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useContext } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Button as RNEButton } from 'react-native-elements';
 
 import { colors, consts, normalize, texts } from '../config';
@@ -9,10 +9,12 @@ import { OrientationContext } from '../OrientationProvider';
 import { DiagonalGradient } from './DiagonalGradient';
 
 /* eslint-disable complexity */
-export const Button = ({ title, onPress, invert, disabled }) => {
+export const Button = ({ disabled, invert, notFullWidth, onPress, title }) => {
   const { orientation, dimensions } = useContext(OrientationContext);
   const needLandscapeStyle =
-    orientation === 'landscape' || dimensions.width > consts.DIMENSIONS.FULL_SCREEN_MAX_WIDTH;
+    notFullWidth ||
+    orientation === 'landscape' ||
+    dimensions.width > consts.DIMENSIONS.FULL_SCREEN_MAX_WIDTH;
   const isAccept = title === texts.volunteer.accept;
   const isReject = title === texts.volunteer.reject;
 
@@ -34,6 +36,8 @@ export const Button = ({ title, onPress, invert, disabled }) => {
     );
   }
 
+  const isDelete = title === texts.volunteer.delete;
+
   return (
     <RNEButton
       type={invert ? 'outline' : undefined}
@@ -46,9 +50,13 @@ export const Button = ({ title, onPress, invert, disabled }) => {
       ]}
       disabledStyle={styles.buttonStyleDisabled}
       disabledTitleStyle={styles.titleStyle}
-      buttonStyle={[styles.buttonStyle, invert && styles.buttonStyleInvert]}
+      buttonStyle={[
+        styles.buttonStyle,
+        invert && styles.buttonStyleInvert,
+        isDelete && styles.rejectStyle
+      ]}
       containerStyle={[styles.containerStyle, needLandscapeStyle && styles.containerStyleLandscape]}
-      ViewComponent={invert || disabled ? undefined : DiagonalGradient}
+      ViewComponent={invert || isDelete || disabled ? undefined : DiagonalGradient}
       useForeground={!invert}
       accessibilityLabel={`${title} ${consts.a11yLabel.button}`}
       disabled={disabled}
@@ -93,12 +101,14 @@ const styles = StyleSheet.create({
 });
 
 Button.propTypes = {
-  title: PropTypes.string.isRequired,
-  onPress: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
   invert: PropTypes.bool,
-  disabled: PropTypes.bool
+  notFullWidth: PropTypes.bool,
+  onPress: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired
 };
 
 Button.defaultProps = {
-  invert: false
+  invert: false,
+  notFullWidth: false
 };

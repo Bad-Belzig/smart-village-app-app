@@ -3,8 +3,7 @@ import * as FileSystem from 'expo-file-system';
 import { MediaTypeOptions } from 'expo-image-picker';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { Avatar } from 'react-native-elements';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   Actions,
@@ -24,28 +23,10 @@ import { useSelectDocument, useSelectImage } from '../hooks';
 
 import { Image } from './Image';
 import { RegularText } from './Text';
+import { VolunteerAvatar } from './volunteer';
 import { Wrapper } from './Wrapper';
 
 const { IMAGE_TYPE_REGEX, VIDEO_TYPE_REGEX } = consts;
-
-const UserAvatar = ({ uri, title }) => (
-  <Avatar
-    containerStyle={styles.spacing}
-    overlayContainerStyle={[styles.overlayContainerStyle, !uri && styles.border]}
-    placeholderStyle={styles.placeholderStyle}
-    rounded
-    source={uri ? { uri } : undefined}
-    renderPlaceholderContent={
-      <Avatar
-        containerStyle={[styles.containerStyle]}
-        overlayContainerStyle={[styles.overlayContainerStyle, styles.border]}
-        rounded
-        title={title}
-        titleStyle={styles.titleStyle}
-      />
-    }
-  />
-);
 
 /**
  * it is the component used to realise the chat function
@@ -119,6 +100,7 @@ export const Chat = ({
       minInputToolbarHeight={normalize(96)}
       placeholder={placeholder}
       scrollToBottom
+      scrollToBottomComponent={() => <Icon.ArrowDown />}
       user={{ _id: parseInt(userId) }}
       renderActions={(props) => {
         const mediaActionSheet = {
@@ -155,16 +137,11 @@ export const Chat = ({
             {...props}
             options={mediaActionSheet}
             containerStyle={styles.actionButtonContainer}
-            icon={() => <Icon.Plus size={normalize(24)} color={colors.darkText} />}
+            icon={() => <Icon.Plus color={colors.darkText} />}
           />
         );
       }}
-      renderAvatar={(props) => (
-        <UserAvatar
-          uri={props?.currentMessage?.user?.avatar}
-          title={props?.currentMessage?.user?.name}
-        />
-      )}
+      renderAvatar={(props) => <VolunteerAvatar item={{ user: props?.currentMessage?.user }} />}
       renderBubble={(props) => (
         <Bubble
           {...props}
@@ -197,8 +174,8 @@ export const Chat = ({
           </TouchableOpacity>
         ))
       }
-      renderDay={(props) => <Day {...props} dateFormat="DD.MM.YYYY" />}
-      renderFooter={() => medias && renderFooter(medias, setMedias)}
+      renderDay={(props) => <Day {...props} dateFormat="D. MMMM YYYY" />}
+      renderFooter={() => !!medias.length && renderFooter(medias, setMedias)}
       renderInputToolbar={(props) => (
         <InputToolbar
           {...props}
@@ -231,8 +208,8 @@ export const Chat = ({
         <MessageText
           {...props}
           textStyle={{
-            left: messageTextStyleLeft || { color: colors.darkText, fontSize: normalize(14) },
-            right: messageTextStyleRight || { color: colors.darkText, fontSize: normalize(14) }
+            left: messageTextStyleLeft || styles.textStyle,
+            right: messageTextStyleRight || styles.textStyle
           }}
         />
       )}
@@ -242,7 +219,7 @@ export const Chat = ({
           containerStyle={styles.sendButtonContainer}
           sendButtonProps={{ ...sendButtonProps, onPress: () => onSendMessages(text, onSend) }}
         >
-          <Icon.Send color={colors.surface} />
+          <Icon.Send color={colors.lightestText} size={normalize(20)} />
         </Send>
       )}
       renderTime={(props) => (
@@ -287,7 +264,7 @@ const renderFooter = (medias, setMedias) => (
           )}
           <View style={styles.mediaDeleteButton}>
             <TouchableOpacity onPress={() => setMedias(deleteArrayItem(medias, index))}>
-              <Icon.CloseCircleOutline size={normalize(24)} color={colors.surface} />
+              <Icon.CloseCircleOutline color={colors.surface} />
             </TouchableOpacity>
           </View>
         </Wrapper>
@@ -301,14 +278,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: normalize(30),
     justifyContent: 'center'
-  },
-  border: {
-    borderColor: colors.darkText,
-    borderWidth: 1
-  },
-  containerStyle: {
-    flexDirection: 'row',
-    alignItems: 'center'
   },
   footerStyle: {
     borderTopWidth: normalize(1),
@@ -335,9 +304,6 @@ const styles = StyleSheet.create({
     height: normalize(86),
     width: normalize(86)
   },
-  overlayContainerStyle: {
-    backgroundColor: colors.surface
-  },
   pdfBubble: {
     alignItems: 'center',
     alignSelf: 'center',
@@ -352,9 +318,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray40,
     justifyContent: 'center'
   },
-  placeholderStyle: {
-    backgroundColor: colors.surface
-  },
   sendButtonContainer: {
     alignItems: 'center',
     backgroundColor: colors.primary,
@@ -365,9 +328,6 @@ const styles = StyleSheet.create({
     marginRight: normalize(20),
     width: normalize(48)
   },
-  spacing: {
-    marginVertical: normalize(5)
-  },
   spacingTime: {
     paddingHorizontal: normalize(10)
   },
@@ -375,21 +335,22 @@ const styles = StyleSheet.create({
     borderColor: colors.gray20,
     borderRadius: normalize(4),
     borderWidth: normalize(1),
+    fontFamily: 'regular',
+    fontSize: normalize(16),
+    lineHeight: normalize(24),
     marginBottom: 0,
-    marginLeft: normalize(16),
+    marginLeft: normalize(10),
     marginTop: 0,
     maxHeight: normalize(200),
     minHeight: normalize(48),
+    paddingBottom: normalize(10),
     paddingHorizontal: normalize(10),
-    ...Platform.select({
-      ios: {
-        paddingTop: normalize(16)
-      }
-    })
+    paddingTop: normalize(10)
   },
-  titleStyle: {
+  textStyle: {
     color: colors.darkText,
-    fontSize: normalize(12)
+    fontFamily: 'regular',
+    fontSize: normalize(14)
   },
   videoBubble: {
     alignSelf: 'center',
@@ -411,9 +372,4 @@ Chat.propTypes = {
   placeholder: PropTypes.string,
   textInputProps: PropTypes.object,
   userId: PropTypes.string || PropTypes.number
-};
-
-UserAvatar.propTypes = {
-  uri: PropTypes.string,
-  title: PropTypes.string
 };

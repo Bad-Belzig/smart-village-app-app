@@ -3,15 +3,7 @@ import { CardStyleInterpolators, StackNavigationOptions } from '@react-navigatio
 import React from 'react';
 import { StyleSheet } from 'react-native';
 
-import {
-  BookmarkHeader,
-  DiagonalGradient,
-  DrawerHeader,
-  FavoritesHeader,
-  HeaderLeft,
-  ShareHeader,
-  WrapperRow
-} from '../components';
+import { DiagonalGradient, FavoritesHeader, HeaderLeft, HeaderRight } from '../components';
 import { colors, device, normalize } from '../config';
 
 type OptionProps = {
@@ -24,42 +16,49 @@ type OptionConfig = {
   withDrawer?: boolean;
   withFavorites?: boolean;
   withShare?: boolean;
+  noHeaderLeft?: boolean;
+  cardStyleInterpolator?: StackNavigationOptions['cardStyleInterpolator'];
 };
 
-export const getScreenOptions = ({
-  withBookmark,
-  withDrawer,
-  withFavorites,
-  withShare
-}: OptionConfig): ((props: OptionProps) => StackNavigationOptions) => ({ navigation, route }) => {
-  const shareContent = route.params?.shareContent ?? '';
-
-  return {
-    // header gradient:
-    // https://stackoverflow.com/questions/44924323/react-navigation-gradient-color-for-header
-    headerBackground: () => <DiagonalGradient />,
-    headerTitleStyle: styles.headerTitleStyle,
-    headerTitleContainerStyle: styles.headerTitleContainerStyle,
-    headerRight: () => (
-      <WrapperRow style={styles.headerRight}>
-        {withBookmark && <BookmarkHeader route={route} style={styles.icon} />}
-        {withShare && <ShareHeader shareContent={shareContent} style={styles.icon} />}
-        {withDrawer && <DrawerHeader navigation={navigation} style={styles.icon} />}
-      </WrapperRow>
-    ),
-    headerLeft: withFavorites
-      ? () => <FavoritesHeader navigation={navigation} style={styles.icon} />
-      : HeaderLeft,
-    title: route.params?.title ?? '',
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
+export const getScreenOptions =
+  ({
+    withBookmark,
+    withDrawer,
+    withFavorites,
+    withShare,
+    noHeaderLeft = false,
+    cardStyleInterpolator
+  }: OptionConfig): ((props: OptionProps) => StackNavigationOptions) =>
+  ({ navigation, route }) => {
+    return {
+      // header gradient:
+      // https://stackoverflow.com/questions/44924323/react-navigation-gradient-color-for-header
+      headerBackground: () => <DiagonalGradient />,
+      headerTitleStyle: styles.headerTitleStyle,
+      headerTitleContainerStyle: styles.headerTitleContainerStyle,
+      headerRight: () => (
+        <HeaderRight
+          {...{
+            navigation,
+            route,
+            shareContent: route.params?.shareContent,
+            withBookmark,
+            withDrawer,
+            withShare
+          }}
+        />
+      ),
+      headerLeft:
+        !noHeaderLeft &&
+        (withFavorites
+          ? () => <FavoritesHeader navigation={navigation} style={styles.icon} />
+          : HeaderLeft),
+      title: route.params?.title ?? '',
+      cardStyleInterpolator: cardStyleInterpolator ?? CardStyleInterpolators.forHorizontalIOS
+    };
   };
-};
 
 const styles = StyleSheet.create({
-  headerRight: {
-    alignItems: 'center',
-    paddingRight: normalize(7)
-  },
   headerTitleStyle: {
     color: colors.lightestText,
     fontFamily: device.platform === 'ios' ? 'bold' : 'regular',

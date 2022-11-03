@@ -11,23 +11,46 @@ import { groupEdit, groupNew } from '../../queries/volunteer';
 import { JOIN_POLICY_TYPES, VISIBILITY_TYPES, VolunteerGroup } from '../../types';
 import { Button } from '../Button';
 import { Input } from '../form/Input';
-import { BoldText } from '../Text';
+import { Label } from '../Label';
+import { RegularText } from '../Text';
 import { Touchable } from '../Touchable';
 import { Wrapper } from '../Wrapper';
 
+const VISIBILITY_OPTIONS = [
+  { value: VISIBILITY_TYPES.ALL, title: 'Öffentlich (auch nicht registrierte Besucher)' },
+  { value: VISIBILITY_TYPES.REGISTERED_ONLY, title: 'Öffentlich (Nur Mitglieder)' },
+  { value: VISIBILITY_TYPES.PRIVATE, title: 'Privat (unsichtbar)' }
+];
+
+const JOIN_POLICY_OPTIONS = [
+  { value: JOIN_POLICY_TYPES.OPEN, title: 'Jeder kann beitreten' },
+  { value: JOIN_POLICY_TYPES.INVITE_AND_REQUEST, title: 'Einladung und Anfrage' },
+  { value: JOIN_POLICY_TYPES.INVITE, title: 'Nur auf Einladung' }
+];
+
+// eslint-disable-next-line complexity
 export const VolunteerFormGroup = ({
   navigation,
+  route,
   scrollToTop
 }: StackScreenProps<any> & { scrollToTop: () => void }) => {
+  const groupData = route.params?.groupData;
+  const isEditMode = !!groupData; // edit mode if there exists some group data
+
   const {
     control,
     formState: { errors, isValid, isSubmitted },
+    watch,
     handleSubmit
   } = useForm<VolunteerGroup>({
     mode: 'onBlur',
     defaultValues: {
-      visibility: VISIBILITY_TYPES.ALL,
-      joinPolicy: JOIN_POLICY_TYPES.OPEN
+      contentContainerId: groupData?.contentcontainer_id || '',
+      description: groupData?.description || '',
+      joinPolicy: JOIN_POLICY_TYPES.OPEN,
+      name: groupData?.name || '',
+      tags: groupData?.tags?.toString() || '',
+      visibility: VISIBILITY_TYPES.ALL
     }
   });
 
@@ -37,17 +60,25 @@ export const VolunteerFormGroup = ({
   const { mutate: mutateEdit, isSuccess: isSuccessEdit } = useMutation(groupEdit);
 
   const onSubmit = (groupNewData: VolunteerGroup) => {
-    mutateAsync(groupNewData).then((dataAsync) => {
-      // tags are not possible to send with creation and need to be updated after creation, which we
-      // do automatically here
-      if (dataAsync?.id) {
-        mutateEdit({
-          id: dataAsync.id,
-          name: dataAsync.name,
-          tags: groupNewData.tags
-        });
-      }
-    });
+    if (isEditMode) {
+      const { id, joinPolicy } = groupData;
+
+      mutateEdit({ ...groupNewData, id, joinPolicy });
+    } else {
+      mutateAsync(groupNewData).then((dataAsync: VolunteerGroup) => {
+        // tags are not possible to send with creation and need to be updated after creation,
+        // which we do automatically here
+        if (dataAsync?.id) {
+          mutateEdit({
+            id: dataAsync.id,
+            name: dataAsync.name,
+            tags: groupNewData.tags,
+            guid: dataAsync.guid,
+            contentContainerId: dataAsync.contentContainerId
+          });
+        }
+      });
+    }
   };
 
   if (!isValid) {
@@ -56,7 +87,9 @@ export const VolunteerFormGroup = ({
 
   if (isError || (!isLoading && data && !data.id)) {
     Alert.alert(
-      'Fehler beim Erstellen einer Gruppe/eines Vereins',
+      isEditMode
+        ? 'Fehler beim Aktualisieren einer Gruppe/eines Vereins'
+        : 'Fehler beim Erstellen einer Gruppe/eines Vereins',
       'Bitte Eingaben überprüfen und erneut versuchen.'
     );
     reset();
@@ -65,7 +98,12 @@ export const VolunteerFormGroup = ({
   if (isSuccessEdit && isFocused) {
     navigation.goBack();
 
-    Alert.alert('Erfolgreich', 'Die Gruppe/der Verein wurde erfolgreich erstellt.');
+    Alert.alert(
+      'Erfolgreich',
+      isEditMode
+        ? 'Die Gruppe/der Verein wurde erfolgreich aktualisiert.'
+        : 'Die Gruppe/der Verein wurde erfolgreich erstellt.'
+    );
   }
 
   return (
@@ -94,53 +132,53 @@ export const VolunteerFormGroup = ({
         />
       </Wrapper>
       <Wrapper style={styles.noPaddingTop}>
-        <Input
-          name="owner"
-          label={texts.volunteer.owner}
-          placeholder={texts.volunteer.owner}
-          multiline
-          validate
-          control={control}
-        />
-      </Wrapper>
-      <Wrapper style={styles.noPaddingTop}>
+        <Label>{texts.volunteer.visibility}</Label>
         <Controller
           name="visibility"
           render={({ onChange, value }) => (
-            <CheckBox
-              checked={!!value}
-              onPress={() => onChange(!value)}
-              title="Öffentlich"
-              checkedColor={colors.accent}
-              checkedIcon="check-square-o"
-              uncheckedColor={colors.darkText}
-              uncheckedIcon="square-o"
-              containerStyle={styles.checkboxContainerStyle}
-              textStyle={styles.checkboxTextStyle}
-            />
+            <>
+              {VISIBILITY_OPTIONS.map((visibilityItem) => (
+                <CheckBox
+                  key={visibilityItem.title}
+                  checked={value === visibilityItem.value}
+                  onPress={() => onChange(visibilityItem.value)}
+                  title={visibilityItem.title}
+                  checkedColor={colors.accent}
+                  uncheckedColor={colors.darkText}
+                  containerStyle={styles.checkboxContainerStyle}
+                  textStyle={styles.checkboxTextStyle}
+                />
+              ))}
+            </>
           )}
           control={control}
         />
       </Wrapper>
-      {/* <Wrapper style={styles.noPaddingTop}>
-        <Controller
-          name="joinPolicy"
-          render={({ onChange, value }) => (
-            <CheckBox
-              checked={!!value}
-              onPress={() => onChange(!value)}
-              title="Jeder kann beitreten"
-              checkedColor={colors.accent}
-              checkedIcon="check-square-o"
-              uncheckedColor={colors.darkText}
-              uncheckedIcon="square-o"
-              containerStyle={styles.checkboxContainerStyle}
-              textStyle={styles.checkboxTextStyle}
-            />
-          )}
-          control={control}
-        />
-      </Wrapper> */}
+      {watch('visibility') !== VISIBILITY_TYPES.PRIVATE && (
+        <Wrapper style={styles.noPaddingTop}>
+          <Label>{texts.volunteer.accessionDirective}</Label>
+          <Controller
+            name="joinPolicy"
+            render={({ onChange, value }) => (
+              <>
+                {JOIN_POLICY_OPTIONS.map((joinPolicyItem) => (
+                  <CheckBox
+                    key={joinPolicyItem.title}
+                    checked={value === joinPolicyItem.value}
+                    onPress={() => onChange(joinPolicyItem.value)}
+                    title={joinPolicyItem.title}
+                    checkedColor={colors.accent}
+                    uncheckedColor={colors.darkText}
+                    containerStyle={styles.checkboxContainerStyle}
+                    textStyle={styles.checkboxTextStyle}
+                  />
+                ))}
+              </>
+            )}
+            control={control}
+          />
+        </Wrapper>
+      )}
       <Wrapper style={styles.noPaddingTop}>
         <Input
           name="tags"
@@ -157,9 +195,9 @@ export const VolunteerFormGroup = ({
           disabled={isLoading}
         />
         <Touchable onPress={() => navigation.goBack()}>
-          <BoldText center primary underline>
-            {texts.volunteer.abort.toUpperCase()}
-          </BoldText>
+          <RegularText primary center>
+            {texts.volunteer.abort}
+          </RegularText>
         </Touchable>
       </Wrapper>
     </>

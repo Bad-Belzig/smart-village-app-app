@@ -1,14 +1,27 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { StackScreenProps } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 import { useMutation } from 'react-query';
 
-import { colors, consts, device, Icon, normalize, texts } from '../../config';
+import {
+  colors,
+  consts,
+  device,
+  Icon,
+  normalize,
+  styles as configStyles,
+  texts
+} from '../../config';
+import { navigatorConfig } from '../../config/navigation';
 import { isAttending, momentFormat, openLink, volunteerUserData } from '../../helpers';
 import { useOpenWebScreen } from '../../hooks';
+import { QUERY_TYPES } from '../../queries';
 import { calendarAttend } from '../../queries/volunteer';
-import { PARTICIPANT_TYPE } from '../../types';
+import { PARTICIPANT_TYPE, ScreenName } from '../../types';
 import { Button } from '../Button';
+import { HeaderRight } from '../HeaderRight';
 import { HtmlView } from '../HtmlView';
 import { ImageSection } from '../ImageSection';
 import { InfoCard } from '../infoCard';
@@ -78,8 +91,51 @@ export const VolunteerEventRecord = ({
       timeTo: momentFormat(endDatetime, 'HH:mm')
     }
   ];
-
+  const [isMe, setIsMe] = useState<boolean>();
   const [isAttendingEvent, setIsAttendingEvent] = useState<boolean>();
+
+  // action to open source urls
+  const openWebScreen = useOpenWebScreen(headerTitle, undefined, rootRouteName);
+
+  const { mutate, isSuccess, data: dataAttend } = useMutation(calendarAttend);
+
+  const attend = useCallback(() => {
+    mutate({ id, type: isAttendingEvent ? PARTICIPANT_TYPE.REMOVE : PARTICIPANT_TYPE.ACCEPT });
+  }, [isAttendingEvent]);
+
+  const checkIfMe = useCallback(async () => {
+    const { currentUserId } = await volunteerUserData();
+
+    !!currentUserId && setIsMe(currentUserId == content?.metadata?.created_by?.id);
+  }, [data]);
+
+  useEffect(() => {
+    checkIfMe();
+  }, [checkIfMe]);
+
+  useLayoutEffect(() => {
+    if (isMe) {
+      navigation.setOptions({
+        headerRight: () => (
+          <HeaderRight
+            {...{
+              navigation,
+              onPress: () =>
+                navigation.navigate(ScreenName.VolunteerForm, {
+                  query: QUERY_TYPES.VOLUNTEER.CALENDAR,
+                  calendarData: data,
+                  groupId: content?.metadata?.contentcontainer_id
+                }),
+              route,
+              withDrawer: navigatorConfig.type === 'drawer',
+              withEdit: true,
+              withShare: true
+            }}
+          />
+        )
+      });
+    }
+  }, [isMe, data]);
 
   const checkIfAttending = useCallback(async () => {
     const { currentUserId } = await volunteerUserData();
@@ -91,18 +147,15 @@ export const VolunteerEventRecord = ({
     checkIfAttending();
   }, [checkIfAttending]);
 
-  // action to open source urls
-  const openWebScreen = useOpenWebScreen(headerTitle, undefined, rootRouteName);
-
-  const { mutate, isSuccess, data: dataAttend } = useMutation(calendarAttend);
-
-  const attend = useCallback(() => {
-    mutate({ id, type: isAttendingEvent ? PARTICIPANT_TYPE.REMOVE : PARTICIPANT_TYPE.ACCEPT });
-  }, [isAttendingEvent]);
-
   useEffect(() => {
     isSuccess && dataAttend?.code == 200 && refetch();
   }, [isSuccess, dataAttend]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [])
+  );
 
   return (
     <View>
@@ -157,7 +210,15 @@ export const VolunteerEventRecord = ({
             </TitleContainer>
             {device.platform === 'ios' && <TitleShadow />}
             <Wrapper>
-              <HtmlView html={description} openWebScreen={openWebScreen} />
+              <Markdown
+                onLinkPress={(url) => {
+                  openLink(url, openWebScreen);
+                  return false;
+                }}
+                style={configStyles.markdown}
+              >
+                {description}
+              </Markdown>
             </Wrapper>
           </View>
         )}

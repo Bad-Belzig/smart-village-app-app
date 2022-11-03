@@ -1,20 +1,9 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
-import { normalize } from 'react-native-elements';
+import { useNavigation } from '@react-navigation/native';
+import { useCallback, useContext, useEffect, useState } from 'react';
 
-import { WrapperRow } from '../../components/Wrapper';
-import { colors, consts, Icon, texts } from '../../config';
-import {
-  storeVolunteerAuthToken,
-  storeVolunteerUserData,
-  volunteerAuthToken,
-  volunteerUserData
-} from '../../helpers/volunteerHelper';
+import { volunteerAuthToken, volunteerUserData } from '../../helpers/volunteerHelper';
 import { NetworkContext } from '../../NetworkProvider';
-import { QUERY_TYPES } from '../../queries';
 import { ScreenName } from '../../types';
-
-const { ROOT_ROUTE_NAMES } = consts;
 
 export const useVolunteerUser = (): {
   refresh: () => Promise<void>;
@@ -79,83 +68,18 @@ export const useVolunteerUser = (): {
   };
 };
 
-export const useLogoutHeader = ({ query, navigation }: any) => {
-  useEffect(() => {
-    if (query !== QUERY_TYPES.VOLUNTEER.PROFILE) return;
+export const useVolunteerNavigation = () => {
+  const navigation = useNavigation();
+  const { isLoggedIn } = useVolunteerUser();
 
-    navigation.setOptions({
-      headerRight: () => (
-        <WrapperRow style={styles.headerRight}>
-          <TouchableOpacity
-            onPress={() =>
-              Alert.alert(
-                'Abmelden',
-                'Bist du sicher, dass du dich abmelden möchtest?',
-                [
-                  {
-                    text: 'Abbrechen'
-                  },
-                  {
-                    text: 'Ja, abmelden',
-                    style: 'destructive',
-                    onPress: async () => {
-                      await storeVolunteerAuthToken();
-                      await storeVolunteerUserData();
-                      navigation?.navigate(ScreenName.VolunteerHome, {
-                        refreshUser: new Date().valueOf()
-                      });
-                    }
-                  }
-                ],
-                { cancelable: false }
-              )
-            }
-            accessibilityLabel={consts.a11yLabel.shareIcon}
-            accessibilityHint={consts.a11yLabel.shareHint}
-          >
-            <Icon.VolunteerLogout color={colors.lightestText} style={styles.icon} />
-          </TouchableOpacity>
-        </WrapperRow>
-      )
-    });
-  }, [query, navigation]);
+  return useCallback(
+    (action) => {
+      if (!isLoggedIn) {
+        navigation.navigate(ScreenName.VolunteerLogin);
+      } else {
+        action();
+      }
+    },
+    [navigation, isLoggedIn]
+  );
 };
-
-export const useConversationsHeader = ({ query, navigation }: any) => {
-  useEffect(() => {
-    if (query !== QUERY_TYPES.VOLUNTEER.CONVERSATIONS) return;
-
-    navigation.setOptions({
-      headerRight: () => (
-        <WrapperRow style={styles.headerRight}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate({
-                name: ScreenName.VolunteerForm,
-                params: {
-                  title: texts.volunteer.conversationStart,
-                  query: QUERY_TYPES.VOLUNTEER.CONVERSATION,
-                  rootRouteName: ROOT_ROUTE_NAMES.VOLUNTEER
-                }
-              })
-            }
-            accessibilityLabel={consts.a11yLabel.shareIcon}
-            accessibilityHint={consts.a11yLabel.shareHint}
-          >
-            <Icon.VolunteerConversationNew color={colors.lightestText} style={styles.icon} />
-          </TouchableOpacity>
-        </WrapperRow>
-      )
-    });
-  }, [query, navigation]);
-};
-
-const styles = StyleSheet.create({
-  headerRight: {
-    alignItems: 'center',
-    paddingRight: normalize(7)
-  },
-  icon: {
-    paddingHorizontal: normalize(10)
-  }
-});

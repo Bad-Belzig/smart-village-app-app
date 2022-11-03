@@ -18,8 +18,6 @@ const getListType = (query, listTypesSettings) => {
     case QUERY_TYPES.POINTS_OF_INTEREST:
     case QUERY_TYPES.TOURS:
       return listTypesSettings[QUERY_TYPES.POINTS_OF_INTEREST_AND_TOURS];
-    case QUERY_TYPES.VOLUNTEER.ADDITIONAL:
-      return LIST_TYPES.CARD_LIST;
     default:
       return listTypesSettings[query];
   }
@@ -79,17 +77,7 @@ export const useRenderItem = (query, navigation, options = {}) => {
         }
 
         if (query === QUERY_TYPES.VOLUNTEER.CONVERSATIONS) {
-          return (
-            <VolunteerConversationListItem
-              item={{
-                ...item,
-                bottomDivider: isArray(section?.data)
-                  ? section.data.length - 1 !== index
-                  : undefined
-              }}
-              navigation={navigation}
-            />
-          );
+          return <VolunteerConversationListItem item={item} navigation={navigation} />;
         }
 
         if (query === QUERY_TYPES.VOLUNTEER.APPLICANTS) {

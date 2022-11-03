@@ -1,5 +1,3 @@
-import { VolunteerUser } from './user';
-
 export enum JOIN_POLICY_TYPES {
   INVITE,
   INVITE_AND_REQUEST,
@@ -19,14 +17,24 @@ export enum MEMBER_STATUS_TYPES {
   MEMBER
 }
 
-export type VolunteerGroup = {
+export type ROLE_TYPES = 'admin' | 'moderator' | 'member';
+
+export type VolunteerOwner = {
+  display_name: string;
   guid: string;
   id: number;
-  name: string;
-  description?: string;
-  owner: VolunteerUser;
-  visibility?: VISIBILITY_TYPES;
-  joinPolicy?: JOIN_POLICY_TYPES;
-  tags?: string;
+  url: string;
+};
+
+export type VolunteerGroup = {
+  about: string;
   contentContainerId: number;
+  description?: string;
+  guid: string;
+  id: number;
+  joinPolicy?: JOIN_POLICY_TYPES;
+  name: string;
+  owner: VolunteerOwner;
+  tags?: string;
+  visibility?: VISIBILITY_TYPES;
 };
