@@ -22,11 +22,19 @@ import { getQuery, QUERY_TYPES } from '../queries';
 import { SettingsContext } from '../SettingsProvider';
 import { GenericType } from '../types';
 
+import { DefectReportFormScreen } from './DefectReport';
+import { NoticeboardFormScreen } from './Noticeboard';
+
 const getGenericComponent = (genericType) => {
   switch (genericType) {
     case GenericType.Commercial:
+    case GenericType.Deadline:
     case GenericType.Job:
       return Offer;
+    case GenericType.DefectReport:
+      return DefectReportFormScreen;
+    case GenericType.Noticeboard:
+      return NoticeboardFormScreen;
   }
 };
 
@@ -63,8 +71,9 @@ const useRootRouteByCategory = (details, navigation) => {
     }
 
     // the types (may) differ, so == is required over ===
-    const rootRouteNameByCategory = categoriesNews.find((category) => category.categoryId == id)
-      ?.rootRouteName;
+    const rootRouteNameByCategory = categoriesNews.find(
+      (category) => category.categoryId == id
+    )?.rootRouteName;
 
     if (rootRouteNameByCategory?.length) {
       navigation.setParams({ rootRouteName: rootRouteNameByCategory });

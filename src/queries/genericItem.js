@@ -22,6 +22,10 @@ export const GET_GENERIC_ITEMS = gql`
       genericType
       title
       externalId
+      categories {
+        id
+        name
+      }
       companies {
         id
         name
@@ -65,6 +69,7 @@ export const GET_GENERIC_ITEMS = gql`
       contentBlocks {
         id
         body
+        title
         mediaContents {
           id
           contentType
@@ -97,6 +102,9 @@ export const GET_GENERIC_ITEMS = gql`
       dates {
         id
         dateEnd
+        dateStart
+        dateFrom: dateStart
+        dateTo: dateEnd
       }
       publicationDate
       payload
@@ -108,6 +116,10 @@ export const GET_GENERIC_ITEM = gql`
   query GenericItem($id: ID!) {
     genericItem(id: $id) {
       id
+      categories {
+        id
+        name
+      }
       createdAt
       genericType
       title
@@ -155,6 +167,7 @@ export const GET_GENERIC_ITEM = gql`
       contentBlocks {
         id
         body
+        title
         mediaContents {
           id
           contentType
@@ -187,9 +200,64 @@ export const GET_GENERIC_ITEM = gql`
       dates {
         id
         dateEnd
+        dateStart
+        dateFrom: dateStart
+        dateTo: dateEnd
       }
       publicationDate
       payload
+    }
+  }
+`;
+
+export const CREATE_GENERIC_ITEM = gql`
+  mutation createGenericItem(
+    $addresses: [AddressInput!]
+    $categoryName: String
+    $contacts: [ContactInput!]
+    $contentBlocks: [ContentBlockInput!]
+    $dates: [DateInput!]
+    $genericType: String
+    $mediaContents: [MediaContentInput!]
+    $publishedAt: String
+    $title: String
+    $forceCreate: Boolean = false
+  ) {
+    createGenericItem(
+      addresses: $addresses
+      categoryName: $categoryName
+      contacts: $contacts
+      contentBlocks: $contentBlocks
+      dates: $dates
+      genericType: $genericType
+      mediaContents: $mediaContents
+      publishedAt: $publishedAt
+      title: $title
+      forceCreate: $forceCreate
+    ) {
+      id
+    }
+  }
+`;
+
+export const CREATE_GENERIC_ITEM_MESSAGE = gql`
+  mutation createGenericItemMessage(
+    $genericItemId: ID!
+    $name: String!
+    $email: String!
+    $phoneNumber: String
+    $message: String!
+    $termsOfService: Boolean!
+  ) {
+    createGenericItemMessage(
+      genericItemId: $genericItemId
+      name: $name
+      email: $email
+      phoneNumber: $phoneNumber
+      message: $message
+      termsOfService: $termsOfService
+    ) {
+      statusCode
     }
   }
 `;

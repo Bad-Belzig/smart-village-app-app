@@ -20,6 +20,7 @@ import {
   ConsulRegisterScreen,
   ConsulStartNewScreen,
   DataProviderScreen,
+  DefectReportFormScreen,
   DetailScreen,
   EncounterDataScreen,
   EncounterHomeScreen,
@@ -35,6 +36,8 @@ import {
   MapViewScreen,
   MultiButtonScreen,
   NestedInfoScreen,
+  NoticeboardFormScreen,
+  NoticeboardIndexScreen,
   OParlCalendarScreen,
   OParlDetailScreen,
   OParlOrganizationsScreen,
@@ -180,6 +183,10 @@ export const defaultStackConfig = ({
       screenComponent: DataProviderScreen
     },
     {
+      routeName: ScreenName.DefectReportForm,
+      screenComponent: DefectReportFormScreen
+    },
+    {
       routeName: ScreenName.Detail,
       screenComponent: DetailScreen,
       screenOptions: getScreenOptions({ withDrawer: isDrawer, withBookmark: true, withShare: true })
@@ -266,6 +273,14 @@ export const defaultStackConfig = ({
     {
       routeName: ScreenName.NestedInfo,
       screenComponent: NestedInfoScreen
+    },
+    {
+      routeName: ScreenName.NoticeboardForm,
+      screenComponent: NoticeboardFormScreen
+    },
+    {
+      routeName: ScreenName.Noticeboard,
+      screenComponent: NoticeboardIndexScreen
     },
     {
       routeName: ScreenName.OParlCalendar,

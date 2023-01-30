@@ -10,6 +10,7 @@ import { WrapperHorizontal, WrapperRow } from '../Wrapper';
 
 type Props = {
   date: number;
+  description: string;
   icon: string;
   temperatures: {
     day: number;
@@ -21,7 +22,7 @@ type Props = {
   };
 };
 
-export const DailyWeather = ({ date, icon, temperatures }: Props) => {
+export const DailyWeather = ({ date, description, icon, temperatures }: Props) => {
   const { day, eve, max, min, morn, night } = temperatures;
 
   return (
@@ -35,7 +36,10 @@ export const DailyWeather = ({ date, icon, temperatures }: Props) => {
           <WrapperRow center>
             <View style={styles.iconContainer}>
               <Image
-                source={{ uri: `https://openweathermap.org/img/wn/${icon}@2x.png` }}
+                source={{
+                  uri: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+                  captionText: description
+                }}
                 style={styles.icon}
                 resizeMode="contain"
               />
@@ -47,22 +51,22 @@ export const DailyWeather = ({ date, icon, temperatures }: Props) => {
           </WrapperRow>
           <RegularText />
           <WrapperRow spaceBetween>
-            <View style={styles.dayTimeEntry}>
-              <RegularText>Morgens</RegularText>
-              <RegularText>{morn.toFixed(1)}°C</RegularText>
-            </View>
-            <View style={styles.dayTimeEntry}>
-              <RegularText>Mittags</RegularText>
-              <RegularText>{day.toFixed(1)}°C</RegularText>
-            </View>
-            <View style={styles.dayTimeEntry}>
-              <RegularText>Abends</RegularText>
-              <RegularText>{eve.toFixed(1)}°C</RegularText>
-            </View>
-            <View style={styles.dayTimeEntry}>
-              <RegularText>Nachts</RegularText>
-              <RegularText>{night.toFixed(1)}°C</RegularText>
-            </View>
+            <RegularText center>
+              Morgens{'\n'}
+              {morn.toFixed(1)}°C
+            </RegularText>
+            <RegularText center>
+              Mittags{'\n'}
+              {day.toFixed(1)}°C
+            </RegularText>
+            <RegularText center>
+              Abends{'\n'}
+              {eve.toFixed(1)}°C
+            </RegularText>
+            <RegularText center>
+              Nachts{'\n'}
+              {night.toFixed(1)}°C
+            </RegularText>
           </WrapperRow>
         </WrapperHorizontal>
       </View>

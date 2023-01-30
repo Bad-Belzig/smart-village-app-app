@@ -6,8 +6,10 @@ import {
   ViroARTrackingTargets,
   ViroImage,
   ViroMaterials,
+  ViroQuad,
   ViroSound,
   ViroSpatialSound,
+  ViroSpotLight,
   ViroVideo
 } from '@viro-community/react-viro';
 import PropTypes from 'prop-types';
@@ -64,7 +66,6 @@ export const AugmentedRealityView = ({ sceneNavigator }) => {
         color={object?.light?.color || colors.surface}
         temperature={object?.light?.temperature || 6500}
         intensity={object?.light?.intensity || 1000}
-        rotation={object?.light?.rotation || [0, 0, 0]}
       />
 
       {object?.target ? (
@@ -88,19 +89,13 @@ export const AugmentedRealityView = ({ sceneNavigator }) => {
 
 // eslint-disable-next-line complexity
 const ViroSoundAnd3DObject = (item) => {
-  const {
-    isObjectLoading,
-    setIsObjectLoading,
-    isStartAnimationAndSound,
-    setIsStartAnimationAndSound,
-    object
-  } = item;
+  const { isObjectLoading, setIsObjectLoading, isStartAnimationAndSound, object } = item;
 
   if (object?.mp4) {
     // if the `chromaKeyFilteredVideo` prop is undefined, the default color of a green screen is set
     ViroMaterials.createMaterials({
       chromaKeyFilteredVideo: {
-        chromaKeyFilteringColor: object?.mp4?.chromaKeyFilteredVideo || '#00FF00'
+        chromaKeyFilteringColor: object.mp4?.chromaKeyFilteredVideo || '#00FF00'
       }
     });
   }
@@ -110,62 +105,90 @@ const ViroSoundAnd3DObject = (item) => {
       {!isObjectLoading && (
         <>
           {!!object?.mp3 &&
-            (object?.mp3?.isSpatialSound ? (
+            (object.mp3?.isSpatialSound ? (
               <ViroSpatialSound
-                source={{ uri: object?.mp3?.uri }}
+                source={{ uri: object.mp3.uri }}
                 paused={!isStartAnimationAndSound}
-                onFinish={() => setIsStartAnimationAndSound(false)}
-                maxDistance={object?.mp3?.maxDistance}
-                minDistance={object?.mp3?.minDistance}
-                position={object?.mp3?.position}
-                rolloffModel={object?.mp3?.rolloffModel}
+                loop
+                maxDistance={object.mp3.maxDistance}
+                minDistance={object.mp3.minDistance}
+                position={object.mp3.position}
+                rolloffModel={object.mp3.rolloffModel}
               />
             ) : (
-              <ViroSound
-                source={{ uri: object?.mp3?.uri }}
-                paused={!isStartAnimationAndSound}
-                onFinish={() => setIsStartAnimationAndSound(false)}
-              />
+              <ViroSound source={{ uri: object.mp3.uri }} paused={!isStartAnimationAndSound} loop />
             ))}
 
           {!!object?.mp4 && (
             <ViroVideo
               loop
               materials={['chromaKeyFilteredVideo']}
-              position={object?.mp4?.position}
-              rotation={object?.mp4?.rotation}
-              scale={object?.mp4?.scale}
-              source={{ uri: object?.mp4?.uri }}
+              position={object.mp4.position}
+              rotation={object.mp4.rotation}
+              scale={object.mp4.scale}
+              source={{ uri: object.mp4.uri }}
             />
           )}
 
           {!!object?.image && (
             <ViroImage
-              position={object?.image?.position}
-              rotation={object?.image?.rotation}
-              scale={object?.image?.scale}
-              source={{ uri: object?.image?.uri }}
+              position={object.image.position}
+              rotation={object.image.rotation}
+              scale={object.image.scale}
+              source={{ uri: object.image.uri }}
             />
           )}
         </>
       )}
 
-      <Viro3DObject
-        source={{ uri: object?.vrx?.uri }}
-        resources={object?.texture}
-        type="VRX"
-        position={object?.vrx?.position}
-        rotation={object?.vrx?.rotation}
-        scale={object?.vrx?.scale}
-        onLoadStart={() => setIsObjectLoading(true)}
-        onLoadEnd={() => setIsObjectLoading(false)}
-        onError={() => alert(texts.augmentedReality.arShowScreen.objectLoadErrorAlert)}
-        animation={{
-          loop: true,
-          name: object?.animationName,
-          run: isStartAnimationAndSound
-        }}
-      />
+      {!!object?.models?.length &&
+        !!object?.textures?.length &&
+        object.models.map((model, index) => (
+          <Viro3DObject
+            key={index}
+            source={{ uri: model.uri }}
+            resources={object.textures}
+            type="VRX"
+            position={model.position}
+            rotation={model.rotation}
+            scale={model.scale}
+            onLoadStart={() => setIsObjectLoading(true)}
+            onLoadEnd={() => setIsObjectLoading(false)}
+            onError={() => alert(texts.augmentedReality.arShowScreen.objectLoadErrorAlert)}
+            shadowCastingBitMask={2}
+            animation={{
+              loop: true,
+              name: object?.animationName,
+              run: isStartAnimationAndSound
+            }}
+          />
+        ))}
+
+      {object?.spot && (
+        <ViroSpotLight
+          direction={object.spot.direction}
+          innerAngle={object.spot.innerAngle}
+          outerAngle={object.spot.outerAngle}
+          position={object.spot.position}
+          shadowMapSize={object.spot.shadowMapSize}
+          shadowOpacity={object.spot.shadowOpacity}
+          castsShadow
+          influenceBitMask={2}
+          shadowFarZ={5}
+          shadowNearZ={2}
+        />
+      )}
+
+      {object?.quad && (
+        <ViroQuad
+          height={object.quad.height}
+          position={object.quad.position}
+          width={object.quad.width}
+          arShadowReceiver
+          lightReceivingBitMask={2}
+          rotation={[-90, 0, 0]}
+        />
+      )}
     </>
   );
 };

@@ -21,14 +21,8 @@ export const PriceCard = ({ prices }) => (
     <WrapperWrap spaceBetween>
       {!!prices &&
         prices.map((item, index) => {
-          const {
-            category,
-            amount,
-            description,
-            maxChildrenCount,
-            maxAdultCount,
-            groupPrice
-          } = item;
+          const { category, amount, description, maxChildrenCount, maxAdultCount } = item;
+          const formattedAmount = priceFormat(amount);
 
           return (
             <PriceBox key={index}>
@@ -37,14 +31,9 @@ export const PriceCard = ({ prices }) => (
                   {category}
                 </BoldText>
               )}
-              {!!amount && (
+              {!!formattedAmount && (
                 <BoldText small lightest>
-                  {priceFormat(amount)}
-                </BoldText>
-              )}
-              {!!groupPrice && (
-                <BoldText small lightest>
-                  {priceFormat(groupPrice)}
+                  {formattedAmount}
                 </BoldText>
               )}
               {!!description && (

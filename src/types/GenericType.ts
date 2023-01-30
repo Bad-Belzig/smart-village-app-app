@@ -1,4 +1,7 @@
 export enum GenericType {
   Commercial = 'Offer',
-  Job = 'Job'
+  Deadline = 'Deadline',
+  DefectReport = 'DefectReport',
+  Job = 'Job',
+  Noticeboard = 'Noticeboard'
 }

@@ -80,6 +80,10 @@ export const texts = {
       'Es wurden noch keine Beiträge, Orte oder Touren für die Lesezeichenliste markiert. Sobald etwas markiert wurde, wird es hier zu finden sein!',
     showAll: 'Alle anzeigen'
   },
+  calendarToggle: {
+    calendar: 'Kalender',
+    list: 'Liste'
+  },
   categoryFilter: {
     dataProvider: 'Datenquellenauswahl',
     category: 'Kategorie'
@@ -258,6 +262,41 @@ export const texts = {
     cancel: 'Abbrechen',
     ok: 'Ok'
   },
+  deadline: {
+    deadline: 'Fristen- und Aktionsmeldung',
+    deadlines: 'Fristen- und Aktionsmeldungen'
+  },
+  defectReport: {
+    usePosition: 'Meine aktuelle Position verwenden',
+    useMap: 'Auf der Karte auswählen',
+    abort: 'Abbrechen',
+    alerts: {
+      error: 'Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+      hint: 'Hinweis',
+      termsOfService: 'Bitte akzeptieren Sie die Datenschutzbestimmungen.'
+    },
+    categoryName: 'Kategorie',
+    defectReport: 'Mängelmeldung',
+    defectReports: 'Mängelmeldungen',
+    emptyTitle: 'Im Moment gibt es nichts zu sehen. Bitte versuchen Sie es später noch einmal.',
+    inputCheckbox:
+      'Mit dem Absenden des Hinweises bestätigen Sie, dass Sie unsere Datenschutzbestimmungen gelesen haben und diese anerkennen.',
+    inputDescription: 'Beschreibung',
+    inputErrorText: 'muss ausgefüllt werden',
+    inputMail: 'Ihre E-Mail',
+    inputMessage: 'Ihre Nachricht',
+    inputName: 'Ihr Name',
+    inputPhone: 'Ihre Telefonnummer',
+    inputTitle: 'Titel',
+    invalidMail: '-Adresse ist nicht gültig.',
+    optional: 'Die folgenden Angaben sind freiwillig:',
+    send: 'Senden',
+    successScreen: {
+      entry: 'Wir prüfen Ihre Angaben.',
+      header: 'Vielen Dank für Ihre Meldung'
+    },
+    wait: 'Bitte warten...'
+  },
   detailTitles: {
     consul: {
       debate: 'Diskussion',
@@ -386,6 +425,42 @@ export const texts = {
   },
   navigationTitles: {
     home: 'Übersicht'
+  },
+  noticeboard: {
+    abort: 'Abbrechen',
+    alerts: {
+      dateDifference: 'Bitte wählen Sie eine maximale Laufzeit von drei Monaten.',
+      error: 'Bitte versuchen Sie es erneut.',
+      hint: 'Hinweis',
+      noticeboardType: 'Bitte wählen Sie den Typ Ihres Eintrags aus.',
+      termsOfService: 'Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.'
+    },
+    categoryNames: {
+      neighbourlyHelp: 'Nachbarschaftshilfe',
+      offer: 'Angebot',
+      search: 'Gesuch'
+    },
+    emptyTitle: 'Im Moment gibt es nichts zu sehen. Bitte versuchen Sie es später noch einmal.',
+    expiryDate: 'Ablaufdatum',
+    inputCheckbox: 'Einverständnis zur Datenverarbeitung',
+    inputDate: (requestedDateDifference) => `Laufzeit (max. ${requestedDateDifference} Monate)`,
+    inputDescription: 'Beschreibung',
+    inputErrorText: 'muss ausgefüllt werden',
+    inputMail: 'Ihre E-Mail',
+    inputMessage: 'Ihre Nachricht',
+    inputName: 'Ihr Name',
+    inputPhoneNumber: 'Ihre Telefonnummer',
+    inputTitle: 'Titel',
+    invalidMail: '-Adresse ist nicht gültig.',
+    noticeboard: 'Schwarzes Brett',
+    publicationDate: 'Erscheinungsdatum',
+    send: 'Senden',
+    successScreen: {
+      application: 'Ihre Nachricht wurde gesendet.',
+      entry:
+        'Vielen Dank für Ihren Eintrag. \n \nWir prüfen Ihre Angaben. Sie erhalten eine E-Mail, wenn der Eintrag freigeschaltet wurde.',
+      header: 'Vielen Dank'
+    }
   },
   oparl: {
     agendaItem: {
@@ -632,6 +707,7 @@ export const texts = {
     location: 'Anfahrt',
     openingTime: 'Öffnungszeiten',
     operatingCompany: 'Anbieter',
+    priceFree: 'kostenlos',
     prices: 'Preise',
     routePlanner: 'Zum Routenplaner bbnavi',
     showLunches: 'Zum aktuellen Gastro-Angebot',
@@ -677,6 +753,10 @@ export const texts = {
     wasteCollection: 'Abfallkalender',
     weather: 'Wetter'
   },
+  serviceTiles: {
+    done: 'Fertig',
+    edit: 'Kacheln bearbeiten'
+  },
   settingsContents: {
     analytics: {
       no: 'Nein',
@@ -693,6 +773,7 @@ export const texts = {
       alternativePositionHint:
         'Wenn Ortungsdienste deaktiviert sind, wird stattdessen der alternative Standort verwendet.',
       chooseAlternateLocationButton: 'Alternativen Standort wählen',
+      next: 'Weiter',
       onSystemPermissionMissing:
         'Um diese Einstellung zu aktivieren muss zunächst die Berechtigung für Ortungsdienste in den Systemeinstellungen erteilt werden.',
       save: 'Speichern',
@@ -829,7 +910,6 @@ export const texts = {
     attendInfo:
       'Wenn Sie Interesse an dieser Veranstaltung bekunden wird diese in den Kalender in Ihrem Bereich übernommen.\n',
     birthday: 'Geburtstag',
-    calendar: 'Kalender',
     calendarMy: 'Mein Kalender',
     calendarNew: 'Termin erstellen',
     contactGroupOwner: 'Gruppenbesitzer kontaktieren',
@@ -878,7 +958,6 @@ export const texts = {
     lastnameError: 'Nachname muss ausgefüllt werden',
     leave: 'Verlassen',
     linkedin: 'Linkedin',
-    list: 'Liste',
     location: 'Ort',
     login: 'Anmelden',
     loginFailedBody: 'Bitte Eingaben überprüfen und erneut versuchen.',
