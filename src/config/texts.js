@@ -1,6 +1,28 @@
 import appJson from '../../app.json';
 
 export const texts = {
+  accessibilityLabels: {
+    checkbox: {
+      active: 'ausgewählt',
+      inactive: 'nicht ausgewählt'
+    },
+    dropDownMenu: {
+      closed: 'geschlossen',
+      open: 'geöffnet'
+    },
+    searchInputIcons: {
+      delete: 'Suche löschen',
+      search: 'Suche'
+    },
+    secureInputIcons: {
+      invisible: 'Kennwort verstecken',
+      visible: 'Kennwort sichtbar machen'
+    },
+    tabs: {
+      active: 'geöffnet',
+      inactive: 'geschlossen'
+    }
+  },
   appIntro: {
     continue: 'Weiter'
   },
@@ -83,10 +105,6 @@ export const texts = {
   calendarToggle: {
     calendar: 'Kalender',
     list: 'Liste'
-  },
-  categoryFilter: {
-    dataProvider: 'Datenquellenauswahl',
-    category: 'Kategorie'
   },
   categoryList: {
     intro: ''
@@ -318,6 +336,11 @@ export const texts = {
     },
     tour: 'Tour'
   },
+  dropdownFilter: {
+    category: 'Kategorie',
+    dataProvider: 'Datenquellenauswahl',
+    location: 'Ort'
+  },
   encounter: {
     birthDate: 'Geburtsdatum',
     cameraPermissionMissing:
@@ -390,6 +413,9 @@ export const texts = {
     prices: 'Preise'
   },
   feedbackLink: 'Feedback',
+  feedbackScreen: {
+    checkboxTitle: 'Ich bin mit dem Speichern meiner Daten einverstanden.'
+  },
   homeButtons: {
     events: 'Alle Veranstaltungen anzeigen',
     news: 'Alle Nachrichten anzeigen',
@@ -1050,7 +1076,8 @@ export const texts = {
       'Ein Download wird in einem externen Browser gestartet.\nNachdem der Download abgeschlossen ist, können Sie die Termine durch Öffnen der Datei in Ihren Kalender importieren.',
     exportAlertTitle: 'Abfallkalender',
     exportCalendar: 'Kalender exportieren',
-    hint: 'Bitte geben Sie Ihre Straße an.',
+    hintCityAndStreet: 'Bitte geben Sie Ihre Ortschaft und anschließend Ihre Straße an.',
+    hintStreet: 'Bitte geben Sie Ihre Straße an.',
     onDayBeforeCollection: 'Am Vortag',
     onDayOfCollection: 'Am Tag der Abholung',
     reminder: 'Erinnerungen',

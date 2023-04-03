@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [v3.1.3]
+
+This update provides some performance improvements and fixes some bugs
+
+### Added
+
+- `react-native-render-html` package updated to latest version (6.3.4)
+- `@native-html/table-plugin` package updated to latest version (5.3.1)
+- `react-native elements` package updated to latest version (3.4.3)
+- added `@native-html/iframe-plugin` package to use iframe feature separated from `react-native-render-html` package
+- added new provider to be able to access accessibility features through the whole code
+- added automatic street selection feature to `WasteCalendar` for locations with only one street
+- added the ability to reduce the opacity of options for finished surveys
+- added `footerText` and button that can be set via server to the bottom of POI list
+- added `introText` and button that can be set via server to the top of the event list
+- added location filter for event list
+
+### Fixed
+
+- fixed the ability to click on finished surveys with `RadioButton`
+- fixed param error when navigating between two identically named navigation screens
+- fixed json.parse error on application startup
+- fixed an `ActivityIndicator` bug that sometimes appeared at the top of the image when loading the image
+- fixed `VirtualisedLists` error caused by using `FlatList` in `ScrollView`
+- fixed opening and closing times of POIs that were sometimes incorrectly shown
+- fixed white areas on the edges of the screen on large screen devices
+
+## [v3.1.2]
+
+This update adds new accessibility features and the ability to select streets on the waste calendar screen
+
+### Added
+
+- added city and street selection feature for waste calendar
+- added accessibility features to the clear or search buttons on inputs
+- added accessibility feature to checkbox component
+- added accessibility feature to filter
+
+### Changed
+
+- updated the accessibility feature in the dropdown to include the dropdown's label
+
+### Fixed
+
+- fixed notification switcher switching on and off issue
+
+## [v3.1.1]
+
+This update adds shadow feature for Augmented Reality, event calendar and accessibility improvements
+
+### Added
+
+- added changeable category list intro text from server
+- added calendar feature to the event screen
+- Augmented Reality
+  - added shadow feature
+  - added maximum height for modal
+- Accessibility
+  - added `accessibilityLabel` for weather icons
+  - added accessibility features to the weather page
+
+### Changed
+
+- added `*` to the required fields required in the inputs of the defect report
+- updated `react-native-snap-carousel` package
+- updated `accessibilityLabel` property of bookmark button
+
+### Fixed
+
+- fixed the problem of not being able to click on the marker on the map
+- fixed the issue where augmented reality models could not be viewed a second time
+- removed the `groupPrice` feature that caused the application to crash on the `Android` platform
+- fixed the problem that the radio button in the survey could not be clicked
+- fixed application crashes in case of no data from the server
+- fixed an issue where the app would crash when selecting the time on the event creation page for `Volunteer`
+- fixed tab icons shifting to the right
+
 ## [v3.1.0] :rocket:
 
 This release brings the first integrations of the Error Report, Due Date and action notifier and Noticeboard fields and customisable `ServiceTiles`
@@ -278,7 +355,7 @@ This mobile app version needs an updated version of the main server (Februar 17t
 ### Added
 
 - refactored all places where we use static contents to use the `useStaticContent` hook
-- added app.json version  to `queryVariables` used in the `useStaticContent` hook
+- added app.json version to `queryVariables` used in the `useStaticContent` hook
 - added app.json version to `queryVariables` of the `globalSettings` query in `src/index.js`
 - added new provider for permanent dataprovider filtering
 - added new settings section for dataprovider filtering
@@ -767,8 +844,7 @@ Customizable image aspect ratios and upgrade react-native-elements
   - latest v1 is 1.2.7: https://github.com/react-native-elements/react-native-elements/blob/next/CHANGELOG.md#v127
   - when updating like this, we needed to make changes where using Image not all styles will be
     applied anymore, you need to change styles to props we had the need of moving `resizeMode` and
-    `borderRadius` from inside of style prop to be props itself default for `resizeMode` was `cover``
-    before in the code of react-native-elements, as it is the default for React Native `Image`
+    `borderRadius` from inside of style prop to be props itself default for `resizeMode` was ` cover`` before in the code of react-native-elements, as it is the default for React Native  `Image`
     component https://reactnative.dev/docs/image#resizemode
 
 ## [v1.5.0] :rocket:
@@ -981,7 +1057,7 @@ Add pull to refresh and processing of a new `buttons` key in `subQuery`
 
 ### Added
 
-- pull to refresh in every screen to refetch data manually  without respecting the
+- pull to refresh in every screen to refetch data manually without respecting the
   refresh time logic
   - the solution is a combination of https://reactnative.dev/docs/refreshcontrol
     with https://www.apollographql.com/docs/react/v2.6/data/queries/#refetching
